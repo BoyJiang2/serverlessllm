@@ -1,0 +1,4599 @@
+{
+  "protocol": "v6",
+  "through": "B1",
+  "passed": true,
+  "formal_switches": 36,
+  "matrix_sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef",
+  "runs": [
+    {
+      "run_id": "PD-V6-B2-K-20261123T070827Z",
+      "case": [
+        "B2",
+        "S1",
+        "K"
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/result.json",
+        "sha256": "e26af6976fb0c90cb2a44d3847e46ae826514dda5843b0d3877bd7d198cfd6c8"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/plan-P.json",
+          "sha256": "9a9ff37a5f1368649c6463ef8a76811f357c06dea3cd3a03ac21da281a1e967b"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/plan-D.json",
+          "sha256": "da28a74db70c6132263a9086b41b459a34964363bf26887ab3c8ce848f7697fc"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/gpu-admission.json",
+        "sha256": "a7d3418853661b62a5a2f3c03e7af00192238005c9cdb93c48689da04da5de1a"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/memory-both.json",
+        "sha256": "ebc0d75126e69f1ba82dae4406aff95f5acc7de5c0285613f221dcc2b9c16e15"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/release-both.json",
+        "sha256": "726146547880b956c25b4b0c3672c4adab20cffa9fefab3b0c47505fd1411940"
+      },
+      "begin_wall_ns": 1795417719148391459,
+      "release_end_wall_ns": 1795420441124794757,
+      "host_peak_gib": {
+        "P": 893.1781997680664,
+        "D": 82.81176376342773
+      },
+      "common_zero_seconds": 78.984276471,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 201.877688685,
+        "roles": {
+          "P": {
+            "lmcache": 201.74900607
+          },
+          "D": {}
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/services-start.json",
+          "sha256": "41b02e235f9e2d92b2373996bb0e5030417f6e28a8a238cb4eaf5ccb59bc4657"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/services-setup-clock.json",
+          "sha256": "a9c9bd302cb6c47e82725984cb3f7e71158aac8208ed6fdd473164d58a49227e"
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "K",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1310.098962036,
+            "net_s": 1310.098962036,
+            "release_wait_s": 0.0,
+            "route_ready_s": 1307.880601353,
+            "serve_to_correct_response_s": 2.218360683,
+            "request_s": 2.174645257
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 1260.359593892,
+              "weights_s": 1099.116584895,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 2.493306178,
+              "weights_rank_max_s": 1099.110066932,
+              "gpu_kv_alloc_rank_max_s": 0.959866961
+            },
+            "D": {
+              "worker_start_to_ready_s": 1262.858464509,
+              "weights_s": 1125.471091535,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 1.922804328,
+              "weights_rank_max_s": 1125.407163931,
+              "gpu_kv_alloc_rank_max_s": 0.826001218
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/00-K/segment-result.json",
+            "sha256": "f027675556abecce59db593ac0e2fa4c146c7a891f3216aaed7440b720c4ce02"
+          }
+        },
+        {
+          "step": 1,
+          "model": "K",
+          "old_model": "K",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1097.422868219,
+            "net_s": 1096.983851194,
+            "release_wait_s": 0.439017025,
+            "route_ready_s": 1096.591721034,
+            "serve_to_correct_response_s": 0.831147185,
+            "request_s": 0.823700038
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 1079.740453738,
+              "checkpoint_reload_s": 1078.312413014,
+              "gpu_kv_alloc_s": 0.238573654
+            },
+            "D": {
+              "weights_s": 364.698342537,
+              "checkpoint_reload_s": 363.11963172,
+              "gpu_kv_alloc_s": 0.235115717
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-K-20261123T070827Z/01-K/segment-result.json",
+            "sha256": "a0021bd5f599fbaf9c32019e5e423901e24958ab5b06a95c25cfd630aa691499"
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/tmp/v6-b1-report-vramowner50.nIUxllP4/formal-matrix-original.json",
+          "sha256": "e3bc8c2558306faa35a4a96bf3020af4c419e2333ed811a87c70edc67935c251"
+        },
+        "geometry": {
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "frozen-kimi"
+      }
+    },
+    {
+      "run_id": "PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z",
+      "case": [
+        "B2",
+        "S1",
+        "D"
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/result.json",
+        "sha256": "63d8489456b014c9f6e9132f19cdffc0bac41ddfdc1c28065c6cda9111ce4901"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/plan-P.json",
+          "sha256": "39b7ed2afb7ec6975afe805584de8f7e78a8a44124f18d84fd1c02cf870c3ccf"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/plan-D.json",
+          "sha256": "e162c292ac5949bcab54c3899d2cdaba9204f05063ed7ca3521fbbd54aea8fb4"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/gpu-admission.json",
+        "sha256": "504ea2f915b13469e6a4ce4a2903a3221924f29f76e2a6d1e2218039c2cfb857"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/memory-both.json",
+        "sha256": "9da27f6a85c22fbc089d877b899970eebc2ef48c5674ed0a839734bc8b1dc6ab"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/release-both.json",
+        "sha256": "57bf383157b14edcd49a9e6453b6218a3a637ff56cd432db5d2ee4df4eb2252a"
+      },
+      "begin_wall_ns": 1795446529109618533,
+      "release_end_wall_ns": 1795448096125488710,
+      "host_peak_gib": {
+        "P": 895.9518661499023,
+        "D": 92.09485244750977
+      },
+      "common_zero_seconds": 78.977209597,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 213.54124453,
+        "roles": {
+          "P": {
+            "lmcache": 213.418004079
+          },
+          "D": {}
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/services-start.json",
+          "sha256": "334a84c61709680eb26ff94c96913a5740566463efd9a98241b70e6ffa6100a0"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/services-setup-clock.json",
+          "sha256": "3d58804cb0746dc65d616f78ae38dab10248ff5c305cffa8aa0a0581c7df1eb8"
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "D",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1019.09454692,
+            "net_s": 1019.09454692,
+            "release_wait_s": 0.0,
+            "route_ready_s": 986.777631388,
+            "serve_to_correct_response_s": 32.316915532,
+            "request_s": 32.261432207
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 553.858335148,
+              "weights_s": 223.418434356,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 5.632043618,
+              "weights_rank_max_s": 223.337824334,
+              "gpu_kv_alloc_rank_max_s": 0.140552688
+            },
+            "D": {
+              "worker_start_to_ready_s": 934.59535687,
+              "weights_s": 602.705000544,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.928776886,
+              "weights_rank_max_s": 602.705000544,
+              "gpu_kv_alloc_rank_max_s": 0.337729986
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/00-D/segment-result.json",
+            "sha256": "52d8c01a2b46e43807b27356132377082daa6dde5d2701e85b08f85578e59bc6"
+          }
+        },
+        {
+          "step": 1,
+          "model": "D",
+          "old_model": "D",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 188.584438196,
+            "net_s": 188.483577084,
+            "release_wait_s": 0.100861112,
+            "route_ready_s": 185.898660109,
+            "serve_to_correct_response_s": 2.685778087,
+            "request_s": 2.67662388
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 116.73637843,
+              "checkpoint_reload_s": 114.927404394,
+              "gpu_kv_alloc_s": 0.333595268
+            },
+            "D": {
+              "weights_s": 179.441192526,
+              "checkpoint_reload_s": 177.236552725,
+              "gpu_kv_alloc_s": 0.382908342
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/01-D/segment-result.json",
+            "sha256": "b842457c2ecf653b357c0f2e026e53177400290933b518e5b8ca35a125f93001"
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/tmp/v6-b1-report-vramowner50.nIUxllP4/formal-matrix-original.json",
+          "sha256": "e3bc8c2558306faa35a4a96bf3020af4c419e2333ed811a87c70edc67935c251"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 32800,
+            "kv_cache_memory_bytes": 19327352832,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "v4-numa-813-four-rail-32k",
+        "long_context_audit": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-D-NUMA-4R-LONG-20261123T150838Z/v4-long-32k-post-wake/audit.json",
+          "sha256": "b76f0fbe4014b70ca7d84edc3ebf3e1075d06ad4bd81dab55fe52fb5b2af8284"
+        }
+      }
+    },
+    {
+      "run_id": "PD-V6-B2-G-GSM4096-20261123T173010Z",
+      "case": [
+        "B2",
+        "S1",
+        "G"
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/result.json",
+        "sha256": "6acad7a792fd6d071b076e648e00d323a3db89ebe00e9ede44777766b56d3c86"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/plan-P.json",
+          "sha256": "ee74ee188a49d5216abfdf8875b881b5f186cbcdb8c4ad11947174afcd0aeb6b"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/plan-D.json",
+          "sha256": "7066b727e62d6899d5f69a7cd3d3577185f48e5f64f7153a9a74151d83842761"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/gpu-admission.json",
+        "sha256": "f416c712d4a8dc326d8340799532390837a9a5212423537c286db33585050a5a"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/memory-both.json",
+        "sha256": "e0a077db6f0c6e3b7f93d3b1556acd6d029e968931c5a407666293221900e50b"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/release-both.json",
+        "sha256": "d448fbe8b453f4dd6c4e47801c851588c8e9770d1ac962c265f2f610a2ce6661"
+      },
+      "begin_wall_ns": 1795455022175402308,
+      "release_end_wall_ns": 1795457808124186097,
+      "host_peak_gib": {
+        "P": 890.9797096252441,
+        "D": 87.07488250732422
+      },
+      "common_zero_seconds": 78.978239751,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 218.236981898,
+        "roles": {
+          "P": {
+            "lmcache": 217.987854079
+          },
+          "D": {}
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/services-start.json",
+          "sha256": "0014e8bcfceb296be59fd524af23a30fcb8fc2636491d83ba47113a5d4f19d03"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/services-setup-clock.json",
+          "sha256": "3c1492edfc91bcc0f4988f25f29369e2010fbb7fedcb7d4905f8099f368b4588"
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "G",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 817.969122605,
+            "net_s": 817.969122605,
+            "release_wait_s": 0.0,
+            "route_ready_s": 816.246089046,
+            "serve_to_correct_response_s": 1.723033559,
+            "request_s": 1.678688181
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 763.142479022,
+              "weights_s": 394.420242119,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 7.506487448,
+              "weights_rank_max_s": 394.176710817,
+              "gpu_kv_alloc_rank_max_s": 0.01327176
+            },
+            "D": {
+              "worker_start_to_ready_s": 762.410018672,
+              "weights_s": 387.023699407,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.984333398,
+              "weights_rank_max_s": 386.946732184,
+              "gpu_kv_alloc_rank_max_s": 0.047246078
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/00-G/segment-result.json",
+            "sha256": "e83178b557d7bf90c4a7f83edf45ddd818c6697fccebf3fb381d28d7faa6e2b7"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/00-G/decode-read-native.log",
+              "sha256": "9cc77ee9ac3013448c821888a2a22298fdc047e4286daae664a35872a045eb87"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/00-G/decode-read-ranks.json",
+              "sha256": "12212e57ea3c4e428bbfe3c07fac4c638cdb590fcc629ed9a3f80f46da3aee70"
+            }
+          }
+        },
+        {
+          "step": 1,
+          "model": "G",
+          "old_model": "G",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 209.691495487,
+            "net_s": 209.589975854,
+            "release_wait_s": 0.101519633,
+            "route_ready_s": 208.709344165,
+            "serve_to_correct_response_s": 0.982151322,
+            "request_s": 0.975627919
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 203.889185623,
+              "checkpoint_reload_s": 202.681971104,
+              "gpu_kv_alloc_s": 0.088686443
+            },
+            "D": {
+              "weights_s": 118.387390989,
+              "checkpoint_reload_s": 117.087831219,
+              "gpu_kv_alloc_s": 0.07904857
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/01-G/segment-result.json",
+            "sha256": "832d3abf05d3c2846fd6c6587ba67fc8daa187ad090a41481825672c84100f75"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/01-G/decode-read-native.log",
+              "sha256": "0e9fdb3e49bc759c261a9f2f324094d899e72b186541a2773c7f5a828e8deec6"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-G-GSM4096-20261123T173010Z/01-G/decode-read-ranks.json",
+              "sha256": "d31fa61710772d181e6aedb3561dd7bca17dde7f90f68df3b5faffb478cb35e7"
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": 49,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "G": {
+            "max_model_len": 4608,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "glm53-fixed50-context-4608",
+        "gsm8k_fixture": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/fixtures/gsm8k-fixed50/manifest.json",
+          "sha256": "310171c8025dc59f0b1f4551ba5854e27f336b34efa2bb96e159855afba9cb98"
+        }
+      }
+    },
+    {
+      "run_id": "PD-V6-B2-S1-20261123T193346Z",
+      "case": [
+        "B2",
+        "S1",
+        null
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/result.json",
+        "sha256": "8a11204784296ee10dcbf78cbd4edc91dd18e539481b0c85bfe46b76b1fd7a36"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/plan-P.json",
+          "sha256": "06f7486ae805472edc03772614ce42f67b3284dfc95f88e1bf5b4fbbea3a49d7"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/plan-D.json",
+          "sha256": "a2ee84517cb551a3b72141e0ff13d36dddce1bdfcb9d10fdd973fc819cbdc4f4"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/gpu-admission.json",
+        "sha256": "c8dfd51d14e07c86190a3f296a7391ba76698baef46f7b7fa7c21a3f6d5cb532"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/memory-both.json",
+        "sha256": "3d8395dfe3d0f79bfdbd8aa97d203884e7decdd9c46c3a05e89f7acbe99ccc85"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/release-both.json",
+        "sha256": "84142022213ea5657432e9680aaa612bdf1a47c4701b3f4c33071f929f098089"
+      },
+      "begin_wall_ns": 1795462437219178599,
+      "release_end_wall_ns": 1795469347125133862,
+      "host_peak_gib": {
+        "P": 941.3202819824219,
+        "D": 131.04761123657227
+      },
+      "common_zero_seconds": 78.978459763,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 217.066187613,
+        "roles": {
+          "P": {
+            "lmcache": 216.816636703
+          },
+          "D": {}
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/services-start.json",
+          "sha256": "11ca175a0dcdfbbacc6a0b2f06498cb9c27be581e6cb777d3e99ed5e601c8a3f"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/services-setup-clock.json",
+          "sha256": "3ca902203f3bb73f6a1762ecb6d9d3479006a13ff28e6864c3ddbf55751a1328"
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "K",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1288.079365309,
+            "net_s": 1288.079365309,
+            "release_wait_s": 0.0,
+            "route_ready_s": 1285.92547039,
+            "serve_to_correct_response_s": 2.153894919,
+            "request_s": 2.108096566
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 1230.123611003,
+              "weights_s": 1078.702432073,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 9.484244978,
+              "weights_rank_max_s": 1078.702432073,
+              "gpu_kv_alloc_rank_max_s": 0.759971201
+            },
+            "D": {
+              "worker_start_to_ready_s": 1245.843386858,
+              "weights_s": 1103.558313642,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 3.437407563,
+              "weights_rank_max_s": 1103.558313642,
+              "gpu_kv_alloc_rank_max_s": 0.860562131
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/00-K/segment-result.json",
+            "sha256": "8d219d8425410a91ab2bda76151fbe6406cf519a0037ee7a378791f99f5bc75c"
+          }
+        },
+        {
+          "step": 1,
+          "model": "G",
+          "old_model": "K",
+          "action": "load_safetensors_cold",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 803.333447572,
+            "net_s": 803.231736506,
+            "release_wait_s": 0.101711066,
+            "route_ready_s": 801.55264815,
+            "serve_to_correct_response_s": 1.780799422,
+            "request_s": 1.735802568
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 756.982409876,
+              "weights_s": 394.834210074,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 9.200412328,
+              "weights_rank_max_s": 394.795004156,
+              "gpu_kv_alloc_rank_max_s": 0.011373395
+            },
+            "D": {
+              "worker_start_to_ready_s": 581.719756525,
+              "weights_s": 191.13153578,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 30.60696397,
+              "weights_rank_max_s": 191.056972554,
+              "gpu_kv_alloc_rank_max_s": 1.174149147
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/01-G/segment-result.json",
+            "sha256": "0a620e326c3abc05cf49c4a4ab7a8522ed9ab02331781551d34cb8cab2bee48a"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/01-G/decode-read-native.log",
+              "sha256": "563567b3a6b1e0c750c97a3b17d2b3f6ee001f5518e7cabb0667b7c65ddd8ab5"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/01-G/decode-read-ranks.json",
+              "sha256": "e4f39dbd4d65f8cb407cef16a20c91bd54017148f714ab83234a57e53687e358"
+            }
+          }
+        },
+        {
+          "step": 2,
+          "model": "D",
+          "old_model": "G",
+          "action": "load_safetensors_cold",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 997.53326396,
+            "net_s": 997.42949873,
+            "release_wait_s": 0.10376523,
+            "route_ready_s": 964.846179312,
+            "serve_to_correct_response_s": 32.687084648,
+            "request_s": 32.639996313
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 760.263327338,
+              "weights_s": 434.519299067,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 5.883899511,
+              "weights_rank_max_s": 434.431228696,
+              "gpu_kv_alloc_rank_max_s": 0.106999528
+            },
+            "D": {
+              "worker_start_to_ready_s": 924.732250664,
+              "weights_s": 579.962464891,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 23.035876066,
+              "weights_rank_max_s": 579.927988012,
+              "gpu_kv_alloc_rank_max_s": 0.807905033
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/02-D/segment-result.json",
+            "sha256": "7e62f2daf6c8b7be042026a790bdf88f19d79e4de6c3cc3e613c5006bd00f33b"
+          }
+        },
+        {
+          "step": 3,
+          "model": "G",
+          "old_model": "D",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 443.012961079,
+            "net_s": 442.913552113,
+            "release_wait_s": 0.099408966,
+            "route_ready_s": 441.943467666,
+            "serve_to_correct_response_s": 1.069493413,
+            "request_s": 1.06300359
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 435.686305031,
+              "checkpoint_reload_s": 434.476048172,
+              "gpu_kv_alloc_s": 0.391243589
+            },
+            "D": {
+              "weights_s": 146.110531039,
+              "checkpoint_reload_s": 144.706496708,
+              "gpu_kv_alloc_s": 0.521312025
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/03-G/segment-result.json",
+            "sha256": "a3b8235bd292eac1c3094784772505480f40d160bca8d0c092175ca2d58b6676"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/03-G/decode-read-native.log",
+              "sha256": "65406dfb84c05d0e26ceb0e4768f5c06144756df1ae541995acc68b7a6cd7817"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/03-G/decode-read-ranks.json",
+              "sha256": "2f5b91c62ddce8e661d6ab4da8fdeae4f2a401deed23c9066d416bcd550c73eb"
+            }
+          }
+        },
+        {
+          "step": 4,
+          "model": "K",
+          "old_model": "G",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1266.205158671,
+            "net_s": 1266.105275894,
+            "release_wait_s": 0.099882777,
+            "route_ready_s": 1265.371535393,
+            "serve_to_correct_response_s": 0.833623278,
+            "request_s": 0.825808651
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 1261.081501052,
+              "checkpoint_reload_s": 1259.674347103,
+              "gpu_kv_alloc_s": 0.234155556
+            },
+            "D": {
+              "weights_s": 576.638570382,
+              "checkpoint_reload_s": 575.055290416,
+              "gpu_kv_alloc_s": 0.239840054
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/04-K/segment-result.json",
+            "sha256": "1e5ee4019b6b90db24ef683d7236130de7ced1294ca09e203ccd4fdb4fae0030"
+          }
+        },
+        {
+          "step": 5,
+          "model": "D",
+          "old_model": "K",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 429.612726916,
+            "net_s": 429.507487485,
+            "release_wait_s": 0.105239431,
+            "route_ready_s": 425.164575343,
+            "serve_to_correct_response_s": 4.448151573,
+            "request_s": 4.438777267
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 417.879234348,
+              "checkpoint_reload_s": 416.022297237,
+              "gpu_kv_alloc_s": 0.392008304
+            },
+            "D": {
+              "weights_s": 255.077702076,
+              "checkpoint_reload_s": 252.451119698,
+              "gpu_kv_alloc_s": 0.347512953
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/05-D/segment-result.json",
+            "sha256": "5e9ae0a39568ac74ef62785369195b6c200448fbc792d51b632228f85bea56df"
+          }
+        },
+        {
+          "step": 6,
+          "model": "K",
+          "old_model": "D",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1272.854067819,
+            "net_s": 1272.746520005,
+            "release_wait_s": 0.107547814,
+            "route_ready_s": 1271.497488927,
+            "serve_to_correct_response_s": 1.356578892,
+            "request_s": 1.349348934
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 1263.707794261,
+              "checkpoint_reload_s": 1262.288420723,
+              "gpu_kv_alloc_s": 0.235969878
+            },
+            "D": {
+              "weights_s": 612.768020108,
+              "checkpoint_reload_s": 611.241712804,
+              "gpu_kv_alloc_s": 0.286417494
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S1-20261123T193346Z/06-K/segment-result.json",
+            "sha256": "701738d918449ac090812918d4ec02c1cda0b178a1dba45df5e054f392e501b9"
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "G": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      }
+    },
+    {
+      "run_id": "PD-V6-B2-S2-20261124T012404Z",
+      "case": [
+        "B2",
+        "S2",
+        null
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/result.json",
+        "sha256": "14216e82b1b281ddb985a38d108b2226081ee06d0a1496a53f0e32db931111c8"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/plan-P.json",
+          "sha256": "7c518ad8e92b7e7b2d35c2a42db3fbaf12296de534efd98ab8b50eefb4258093"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/plan-D.json",
+          "sha256": "23ea810afd95885b2b8ba0837f481209c2fc943db9b3e7b4d16f65a3a141e6bf"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/gpu-admission.json",
+        "sha256": "7549f03c75378e853c1426805470cd468d9f1d656cb05764231dfba06d7d10dc"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/memory-both.json",
+        "sha256": "73eb180e50db2304063039255e947d67ceb5cd68def2380e7baabadc15044364"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/release-both.json",
+        "sha256": "cded7df49cdb8b51e8535f7e532d2594d44c87150e59198ddb12dba52d898863"
+      },
+      "begin_wall_ns": 1795483455207213674,
+      "release_end_wall_ns": 1795489575124056425,
+      "host_peak_gib": {
+        "P": 954.4915962219238,
+        "D": 139.46976852416992
+      },
+      "common_zero_seconds": 78.978488517,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 215.709263453,
+        "roles": {
+          "P": {
+            "lmcache": 215.458424218
+          },
+          "D": {}
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/services-start.json",
+          "sha256": "fc4d89a535cfd9087a22f692a0264d4c13983a6e8173d80d0e2024c7acbbddd0"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/services-setup-clock.json",
+          "sha256": "83552b95ecc7859078d5649ff0fbe1ff3dccb0a7ba2d2ef0f85ff9857ead1b02"
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "G",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 823.563513197,
+            "net_s": 823.563513197,
+            "release_wait_s": 0.0,
+            "route_ready_s": 821.842877907,
+            "serve_to_correct_response_s": 1.72063529,
+            "request_s": 1.674869498
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 765.678726386,
+              "weights_s": 392.581862596,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.692921942,
+              "weights_rank_max_s": 392.5400355,
+              "gpu_kv_alloc_rank_max_s": 0.01093274
+            },
+            "D": {
+              "worker_start_to_ready_s": 757.053900224,
+              "weights_s": 382.260906621,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.991942533,
+              "weights_rank_max_s": 382.121416989,
+              "gpu_kv_alloc_rank_max_s": 0.017975869
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/00-G/segment-result.json",
+            "sha256": "0796653263f32555c367605e6cb09233bd0d0d0acabb2bd98cec478a77484170"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/00-G/decode-read-native.log",
+              "sha256": "dc241b65270fb1b0babb992afd2affa1024f94a65ec98e0890d53d6549a48bb7"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/00-G/decode-read-ranks.json",
+              "sha256": "f80e1ba50247235e6651094a97724c61b5de0b6088fdb4d44d576865489c4b0f"
+            }
+          }
+        },
+        {
+          "step": 1,
+          "model": "D",
+          "old_model": "G",
+          "action": "load_safetensors_cold",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1050.65727624,
+            "net_s": 1050.559239898,
+            "release_wait_s": 0.098036342,
+            "route_ready_s": 1018.090457334,
+            "serve_to_correct_response_s": 32.566818906,
+            "request_s": 32.518963017
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 758.883715504,
+              "weights_s": 426.962986139,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.064177129,
+              "weights_rank_max_s": 426.746679343,
+              "gpu_kv_alloc_rank_max_s": 0.108730437
+            },
+            "D": {
+              "worker_start_to_ready_s": 967.808227889,
+              "weights_s": 606.145163036,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 35.549556434,
+              "weights_rank_max_s": 606.145019502,
+              "gpu_kv_alloc_rank_max_s": 1.599609347
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/01-D/segment-result.json",
+            "sha256": "67189211bb5b33e491a6169148b3632b2169fa232dfda7f2a116425dbad09948"
+          }
+        },
+        {
+          "step": 2,
+          "model": "K",
+          "old_model": "D",
+          "action": "load_safetensors_cold",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1302.890275359,
+            "net_s": 1302.787801305,
+            "release_wait_s": 0.102474054,
+            "route_ready_s": 1300.688246925,
+            "serve_to_correct_response_s": 2.202028434,
+            "request_s": 2.157325235
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 1262.22356355,
+              "weights_s": 1116.383375002,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 2.930115891,
+              "weights_rank_max_s": 1116.383375002,
+              "gpu_kv_alloc_rank_max_s": 0.896041927
+            },
+            "D": {
+              "worker_start_to_ready_s": 1264.181487822,
+              "weights_s": 1122.214838218,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.166567555,
+              "weights_rank_max_s": 1122.186359538,
+              "gpu_kv_alloc_rank_max_s": 0.753518761
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/02-K/segment-result.json",
+            "sha256": "c13a6ca2b50f91850c83844700b76dee9d344dcd9ec3adbd5691aa906f904c4a"
+          }
+        },
+        {
+          "step": 3,
+          "model": "D",
+          "old_model": "K",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 373.911967964,
+            "net_s": 373.77826381,
+            "release_wait_s": 0.133704154,
+            "route_ready_s": 370.218675021,
+            "serve_to_correct_response_s": 3.693292943,
+            "request_s": 3.686622299
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 362.239966844,
+              "checkpoint_reload_s": 360.359534935,
+              "gpu_kv_alloc_s": 0.345595393
+            },
+            "D": {
+              "weights_s": 184.244619968,
+              "checkpoint_reload_s": 182.145846035,
+              "gpu_kv_alloc_s": 0.327498691
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/03-D/segment-result.json",
+            "sha256": "20a1950d150e85fa735e748fc185b57f61128cd3990dbb6d9241e5811f329498"
+          }
+        },
+        {
+          "step": 4,
+          "model": "G",
+          "old_model": "D",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 447.649014902,
+            "net_s": 447.547354308,
+            "release_wait_s": 0.101660594,
+            "route_ready_s": 446.502256922,
+            "serve_to_correct_response_s": 1.14675798,
+            "request_s": 1.140091304
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 423.049776742,
+              "checkpoint_reload_s": 421.696387857,
+              "gpu_kv_alloc_s": 0.412276288
+            },
+            "D": {
+              "weights_s": 208.951627859,
+              "checkpoint_reload_s": 207.656251675,
+              "gpu_kv_alloc_s": 0.473509956
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/04-G/segment-result.json",
+            "sha256": "d6c71da178c5ff8f38e4be6459a0e090bc5db5e8ffee06506bc30db2390dbd72"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/04-G/decode-read-native.log",
+              "sha256": "4a9a4af24c98eff91f6f6606d355bab141b2f136647dd956110a06cf2e5755c2"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/04-G/decode-read-ranks.json",
+              "sha256": "a23755fa3ed216adb203e949b23620fe669567f3eba131e3ee8569c952a7f186"
+            }
+          }
+        },
+        {
+          "step": 5,
+          "model": "K",
+          "old_model": "G",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1281.280111725,
+            "net_s": 1281.178090873,
+            "release_wait_s": 0.102020852,
+            "route_ready_s": 1279.398203275,
+            "serve_to_correct_response_s": 1.88190845,
+            "request_s": 1.874912862
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 1270.867066894,
+              "checkpoint_reload_s": 1269.289771457,
+              "gpu_kv_alloc_s": 0.246147315
+            },
+            "D": {
+              "weights_s": 551.118559693,
+              "checkpoint_reload_s": 549.470360058,
+              "gpu_kv_alloc_s": 0.262156996
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/05-K/segment-result.json",
+            "sha256": "14f44c78d702182aaf2edef1f0200a01865f7279b399ecb7cc81600ab838e18a"
+          }
+        },
+        {
+          "step": 6,
+          "model": "G",
+          "old_model": "K",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 432.385512146,
+            "net_s": 432.283391944,
+            "release_wait_s": 0.102120202,
+            "route_ready_s": 431.194746204,
+            "serve_to_correct_response_s": 1.190765942,
+            "request_s": 1.184295634
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 421.202127748,
+              "checkpoint_reload_s": 419.902276427,
+              "gpu_kv_alloc_s": 0.499216326
+            },
+            "D": {
+              "weights_s": 185.485030113,
+              "checkpoint_reload_s": 184.159716201,
+              "gpu_kv_alloc_s": 0.548669688
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/06-G/segment-result.json",
+            "sha256": "a2f0b6f5df5b57729ebf9bd946099873a7ada6ce4d6323d1071a24da9c0e68d5"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/06-G/decode-read-native.log",
+              "sha256": "51f4b7f50e70026b14d289142d42d26e3b54ce726602e39efa3b81b41ffe460a"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S2-20261124T012404Z/06-G/decode-read-ranks.json",
+              "sha256": "1c7a58457cb0d43713b243a2a1be72f9efc22de14eb979ce3155a0cd12588030"
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "G": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      }
+    },
+    {
+      "run_id": "PD-V6-B2-S3-20261124T030726Z",
+      "case": [
+        "B2",
+        "S3",
+        null
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/result.json",
+        "sha256": "e934c43e5b35143ccd99c5e3e8c1dc9d4682483cbb317f4693265703be1f5b8c"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/plan-P.json",
+          "sha256": "ae69995f94d9d8738722f57c0b3e4d555543db71e6a2d911df45af1c64a87c9f"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/plan-D.json",
+          "sha256": "b00cfb1e60e23338f211b8d01653511c862f00d60a8826749135a4f25be2dd7c"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/gpu-admission.json",
+        "sha256": "299e37ea3d82b2af51b430ce668d1410865d1d38ca21b887a756c1f8876e3a33"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/memory-both.json",
+        "sha256": "32b93308d51e7ab00e6b9aa5f7f448f5e0da1b6580612b3be62813ba74f0cd5a"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/release-both.json",
+        "sha256": "12d1c15edb80e6911d5b362fe75d25b0b357e68413dcd65ec17c9e163982d2fb"
+      },
+      "begin_wall_ns": 1795489658141052525,
+      "release_end_wall_ns": 1795495484124269096,
+      "host_peak_gib": {
+        "P": 950.4417304992676,
+        "D": 139.74322509765625
+      },
+      "common_zero_seconds": 78.978134225,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 217.607777915,
+        "roles": {
+          "P": {
+            "lmcache": 217.358980738
+          },
+          "D": {}
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/services-start.json",
+          "sha256": "47ed1fdb0f3678f7e533a264b144722262bea0740056b0e1e69f63cee8127f13"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/services-setup-clock.json",
+          "sha256": "402b4d43815870d9557fa63f2dd5f96e807d26ed341ece61d8646e568deb5539"
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "D",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 992.252922479,
+            "net_s": 992.252922479,
+            "release_wait_s": 0.0,
+            "route_ready_s": 959.790232272,
+            "serve_to_correct_response_s": 32.462690207,
+            "request_s": 32.413792566
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 757.952339018,
+              "weights_s": 425.515730349,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 5.860980462,
+              "weights_rank_max_s": 425.492134388,
+              "gpu_kv_alloc_rank_max_s": 0.297029682
+            },
+            "D": {
+              "worker_start_to_ready_s": 912.250723083,
+              "weights_s": 575.935226118,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 15.525291222,
+              "weights_rank_max_s": 575.872839687,
+              "gpu_kv_alloc_rank_max_s": 0.669787688
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/00-D/segment-result.json",
+            "sha256": "51c588c6dc8a679b18cd22fe9892892b201951382c8782979c99b1aafcb02eb5"
+          }
+        },
+        {
+          "step": 1,
+          "model": "K",
+          "old_model": "D",
+          "action": "load_safetensors_cold",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1312.795764709,
+            "net_s": 1312.695208462,
+            "release_wait_s": 0.100556247,
+            "route_ready_s": 1310.340696956,
+            "serve_to_correct_response_s": 2.455067753,
+            "request_s": 2.410173101
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 1277.583127288,
+              "weights_s": 1124.311990294,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.164097526,
+              "weights_rank_max_s": 1124.224595361,
+              "gpu_kv_alloc_rank_max_s": 0.811847781
+            },
+            "D": {
+              "worker_start_to_ready_s": 1274.859026454,
+              "weights_s": 1136.99617975,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 2.352080412,
+              "weights_rank_max_s": 1136.971852177,
+              "gpu_kv_alloc_rank_max_s": 1.493096534
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/01-K/segment-result.json",
+            "sha256": "48bb06e7936a864670f0078997da3cd600752590fe9ffdc2bc96d505b8df4d91"
+          }
+        },
+        {
+          "step": 2,
+          "model": "G",
+          "old_model": "K",
+          "action": "load_safetensors_cold",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 851.239905662,
+            "net_s": 851.139275931,
+            "release_wait_s": 0.100629731,
+            "route_ready_s": 849.559165607,
+            "serve_to_correct_response_s": 1.680740055,
+            "request_s": 1.633574724
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 805.585447328,
+              "weights_s": 433.855822337,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 14.361482849,
+              "weights_rank_max_s": 433.690826726,
+              "gpu_kv_alloc_rank_max_s": 0.079572423
+            },
+            "D": {
+              "worker_start_to_ready_s": 765.056660554,
+              "weights_s": 364.408077023,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 34.217124385,
+              "weights_rank_max_s": 364.310466916,
+              "gpu_kv_alloc_rank_max_s": 0.498524502
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/02-G/segment-result.json",
+            "sha256": "64e06ed15c98267c3fcce3e7b81881b38aac1c34e70fbacd748c2da36fce0b5a"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/02-G/decode-read-native.log",
+              "sha256": "db1faf2e8b2ed5b4c374336c39d679a2fdcbb733799ee1d1a6981f4a7077fba9"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/02-G/decode-read-ranks.json",
+              "sha256": "fc916c4b29c49a5ea4c16338214c378780e53799db2c0af19310052c04944281"
+            }
+          }
+        },
+        {
+          "step": 3,
+          "model": "K",
+          "old_model": "G",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 989.716924518,
+            "net_s": 989.613299175,
+            "release_wait_s": 0.103625343,
+            "route_ready_s": 988.851377743,
+            "serve_to_correct_response_s": 0.865546775,
+            "request_s": 0.858639118
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 984.597397129,
+              "checkpoint_reload_s": 983.128064343,
+              "gpu_kv_alloc_s": 0.235236929
+            },
+            "D": {
+              "weights_s": 387.549007026,
+              "checkpoint_reload_s": 385.947855026,
+              "gpu_kv_alloc_s": 0.247205481
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/03-K/segment-result.json",
+            "sha256": "c7a45b7e9e9a01d8d4ae4c685120b0122dede276252efea8d7e9d883588fd054"
+          }
+        },
+        {
+          "step": 4,
+          "model": "D",
+          "old_model": "K",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 489.931686982,
+            "net_s": 489.823847354,
+            "release_wait_s": 0.107839628,
+            "route_ready_s": 484.915264314,
+            "serve_to_correct_response_s": 5.016422668,
+            "request_s": 5.009345513
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 477.294157613,
+              "checkpoint_reload_s": 475.427778962,
+              "gpu_kv_alloc_s": 0.349598082
+            },
+            "D": {
+              "weights_s": 249.07786624,
+              "checkpoint_reload_s": 247.127854491,
+              "gpu_kv_alloc_s": 0.327601626
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/04-D/segment-result.json",
+            "sha256": "c63eba5b241b01861ad478e0e6daf6f0460b118c3e1e6190c4254b201ff70730"
+          }
+        },
+        {
+          "step": 5,
+          "model": "G",
+          "old_model": "D",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 461.416912804,
+            "net_s": 461.226552598,
+            "release_wait_s": 0.190360206,
+            "route_ready_s": 460.055261051,
+            "serve_to_correct_response_s": 1.361651753,
+            "request_s": 1.354417952
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 444.175058563,
+              "checkpoint_reload_s": 442.945513511,
+              "gpu_kv_alloc_s": 0.429322894
+            },
+            "D": {
+              "weights_s": 246.26115349,
+              "checkpoint_reload_s": 244.854949898,
+              "gpu_kv_alloc_s": 0.560194383
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/05-G/segment-result.json",
+            "sha256": "714327038f41bea365305dd67c8c66bf1b37da71b405ef2dd34fa6fd701ba3e2"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/05-G/decode-read-native.log",
+              "sha256": "f6f80fbf92b2e68614fe73ee05722a9d2af7474df5332e9d1810b471f931d2b5"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/05-G/decode-read-ranks.json",
+              "sha256": "a9aa66fb9ac81afa774532937a5d72568f9214c5f4a19b458caa899fabba93c5"
+            }
+          }
+        },
+        {
+          "step": 6,
+          "model": "D",
+          "old_model": "G",
+          "action": "wake_checkpoint_same_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 319.808177172,
+            "net_s": 319.704937349,
+            "release_wait_s": 0.103239823,
+            "route_ready_s": 318.471536616,
+            "serve_to_correct_response_s": 1.336640556,
+            "request_s": 1.328729307
+          },
+          "role_stage_timing": {
+            "P": {
+              "weights_s": 311.262250574,
+              "checkpoint_reload_s": 309.118794717,
+              "gpu_kv_alloc_s": 0.335333808
+            },
+            "D": {
+              "weights_s": 258.214212522,
+              "checkpoint_reload_s": 256.152827258,
+              "gpu_kv_alloc_s": 0.35969701
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B2-S3-20261124T030726Z/06-D/segment-result.json",
+            "sha256": "f562b6d37c2805e52284478cb81de53fa2e205a960d027b0acf5772a0837566c"
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "G": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      }
+    },
+    {
+      "run_id": "PD-V6-B1-K-20261124T075423Z",
+      "case": [
+        "B1",
+        "S1",
+        "K"
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/result.json",
+        "sha256": "3b1302534cc87aeadec84dfc0b7b60217ead11a0c9e315da6a57e91074067640"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/plan-P.json",
+          "sha256": "902d2dd1d388b9a9622fa0f95f1ea29c191385c6bd3ad0eb69a269ee0f368ca7"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/plan-D.json",
+          "sha256": "a79b3368bb65a3fc53a18f31679159d6f50b9067027cf40a5083106764644cdd"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/gpu-admission.json",
+        "sha256": "0b459461fca3ad64660ba2cc9c50075a96c9f0600f94c42ccdce349956a54aa7"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/memory-both.json",
+        "sha256": "385d647229da24573114bd83be7f505ed304376f6464811532d492f294396e69"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/release-both.json",
+        "sha256": "edf03d8c99ffcc945dd31a2132b78b591027c639f025278040a9527dcc7853b6"
+      },
+      "begin_wall_ns": 1795506874122944374,
+      "release_end_wall_ns": 1795508092123330698,
+      "host_peak_gib": {
+        "P": 1832.2152519226074,
+        "D": 1022.597038269043
+      },
+      "common_zero_seconds": 78.978210666,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 572.91954123,
+        "roles": {
+          "P": {
+            "lmcache": 217.446686148,
+            "store": 354.785128241
+          },
+          "D": {
+            "store": 346.022868848
+          }
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/services-start.json",
+          "sha256": "5fc83e51de45077478f21944d6bf7e17827042c63a64f532cfbd1c0420ed391b"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/services-setup-clock.json",
+          "sha256": "689de59345bfdb348bd9e3acb0e97846a482cabf4846ea0cab4854762ef7f44d"
+        },
+        "weight_store_configured_pool_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        },
+        "weight_store_registered_pinned_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "K",
+          "old_model": null,
+          "action": "start_store_new_worker",
+          "measurement": "first_store_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 284.266342718,
+            "net_s": 284.266342718,
+            "release_wait_s": 0.0,
+            "route_ready_s": 282.061404842,
+            "serve_to_correct_response_s": 2.204937876,
+            "request_s": 2.160665754
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 247.462313358,
+              "weights_s": 96.028834605,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 5.751757587,
+              "weights_rank_max_s": 95.84431758,
+              "gpu_kv_alloc_rank_max_s": 4.681482543
+            },
+            "D": {
+              "worker_start_to_ready_s": 281.753299599,
+              "weights_s": 103.882075211,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 14.202885991,
+              "weights_rank_max_s": 103.882075211,
+              "gpu_kv_alloc_rank_max_s": 12.011019632
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/00-K/segment-result.json",
+            "sha256": "9d403c70f70b44ef942f3fc97e33deac03436773127736b6e6c1945dfd35b397"
+          }
+        },
+        {
+          "step": 1,
+          "model": "K",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 184.216200702,
+            "net_s": 182.594475189,
+            "release_wait_s": 1.621725513,
+            "route_ready_s": 181.918761427,
+            "serve_to_correct_response_s": 2.297439275,
+            "request_s": 2.253215212
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 154.310436652,
+              "weights_s": 9.364867585,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 3.327454674,
+              "weights_rank_max_s": 9.121557072,
+              "gpu_kv_alloc_rank_max_s": 2.356845992
+            },
+            "D": {
+              "worker_start_to_ready_s": 170.317260745,
+              "weights_s": 10.316820972,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 10.476751265,
+              "weights_rank_max_s": 10.290493475,
+              "gpu_kv_alloc_rank_max_s": 9.050885272
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/segment-result.json",
+            "sha256": "3badf7c60aeb48ae7aacae22a9a5fe2528db5cb5ecbda5e327a2ddc47991df14"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/interstage-release.json",
+              "sha256": "4e3e65f92eaeab2e5fcb6c08b81a3bca8b0828198e5b1c2f64401330aa0e1d1d"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/transition/old-stop.json",
+              "sha256": "eea5cb23ea193548309456f8857d843614786ddcf626889b42f63bc9f9067640"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/stop-P.stdout",
+                "sha256": "9f49ad00d462abf922aa22f8117ddf0b110836c1ed939c69dc29d978a56d71be"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/stop-D.stdout",
+                "sha256": "d8814b5e98b29cb6d010290c5230d208668a98948a4c9f8167bf9d17c7ccf66b"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/vram-old-release-0-P.txt",
+                "sha256": "0796f60c84e75eaca644d34f54590779db261b1c9441faf1c7ff2632de1c7da8"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/old-compute-0-P.stdout",
+                "sha256": "b202f02e2d99a09c0952d71c248741b243cef5f909ac94320da3850409befc11"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-K-20261124T075423Z/01-K/old-compute-0-D.stdout",
+                "sha256": "65fb20d4e6044eb978f6a72902508ecf248482aca444919671dca15fa0aa22b9"
+              }
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      },
+      "host_min_available_gib": {
+        "P": 91.06795501708984,
+        "D": 900.6861763000488
+      }
+    },
+    {
+      "run_id": "PD-V6-B1-G-GSM4096-20261124T081912Z",
+      "case": [
+        "B1",
+        "S1",
+        "G"
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/result.json",
+        "sha256": "6eb4a97bf9306ec83e8173f65bf3243420960f08174b82cd3fa58f18863f142f"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/plan-P.json",
+          "sha256": "4d1d35a6d687c9d284fdf11dd0160bc4612d92d6cd19e98c3dabc13554d68408"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/plan-D.json",
+          "sha256": "6d1c4332fce7660dd5aa3eecbcee3e61eb93a245915e4ecfe0c94e8b73b52d90"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/gpu-admission.json",
+        "sha256": "8f7a2316944284f358dc991aab872588fcb87457819040fd0f5505181341bba9"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/memory-both.json",
+        "sha256": "2b0d791c51adcd54c0e8667bc36b2c20107902dd29dbda138ba9b11e896c5cc9"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/release-both.json",
+        "sha256": "e9d6014cbc59f3898672da959519b15bf7464e999d8ae34b58217e58994036be"
+      },
+      "begin_wall_ns": 1795508363115605687,
+      "release_end_wall_ns": 1795511607124120237,
+      "host_peak_gib": {
+        "P": 1831.7439155578613,
+        "D": 1021.3476066589355
+      },
+      "common_zero_seconds": 78.978015683,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 572.960243443,
+        "roles": {
+          "P": {
+            "lmcache": 217.571350857,
+            "store": 354.923431127
+          },
+          "D": {
+            "store": 347.950292132
+          }
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/services-start.json",
+          "sha256": "11bd05f1396ff5a862e22d1d5472104b7bd97d3497188ccda5b91a227186c029"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/services-setup-clock.json",
+          "sha256": "c780c73855e10d35cf4a3acdeb90d5d3ae17c212b3319bb6688a6e58c2311608"
+        },
+        "weight_store_configured_pool_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        },
+        "weight_store_registered_pinned_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "G",
+          "old_model": null,
+          "action": "start_store_new_worker",
+          "measurement": "first_store_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 531.681120221,
+            "net_s": 531.681120221,
+            "release_wait_s": 0.0,
+            "route_ready_s": 529.426355232,
+            "serve_to_correct_response_s": 2.254764989,
+            "request_s": 2.208466431
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 529.246755536,
+              "weights_s": 127.602803547,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.884389238,
+              "weights_rank_max_s": 127.515866968,
+              "gpu_kv_alloc_rank_max_s": 0.011970864
+            },
+            "D": {
+              "worker_start_to_ready_s": 525.167580124,
+              "weights_s": 132.07456323,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.701102476,
+              "weights_rank_max_s": 131.958156282,
+              "gpu_kv_alloc_rank_max_s": 0.438387822
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/00-G/segment-result.json",
+            "sha256": "f5696aa0d4fd087dc83d15cf2cf60693417c0a034e0156b6b9396e31c7cbe0ca"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/00-G/decode-read-native.log",
+              "sha256": "be3339733e46c3680627d232ca4d635b7fceed41e7ae989f91a59264db0fb977"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/00-G/decode-read-ranks.json",
+              "sha256": "34f2196c5d040108d1adfab05bf4365267b900cce073af59e00967d2c3f5f4d9"
+            }
+          }
+        },
+        {
+          "step": 1,
+          "model": "G",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 542.11234325,
+            "net_s": 413.271809549,
+            "release_wait_s": 128.840533701,
+            "route_ready_s": 540.181787877,
+            "serve_to_correct_response_s": 1.930555373,
+            "request_s": 1.8879032
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 403.980483984,
+              "weights_s": 20.183902563,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 7.983018626,
+              "weights_rank_max_s": 20.152537692,
+              "gpu_kv_alloc_rank_max_s": 0.343017562
+            },
+            "D": {
+              "worker_start_to_ready_s": 405.771088305,
+              "weights_s": 21.567261369,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.390278516,
+              "weights_rank_max_s": 21.561560294,
+              "gpu_kv_alloc_rank_max_s": 0.27662995
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/segment-result.json",
+            "sha256": "c70a261ea8fe4de4f76d00b9b5069e124f9d5e1f6aa0f56263ea3124556d2d11"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/decode-read-native.log",
+              "sha256": "32298460aeb44703a8aa440f66a611df3c1014a36006f80b338bb32a9b6ac15a"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/decode-read-ranks.json",
+              "sha256": "d1c970d9b3cfa5de4f6e85c24a031d7ac332fc0a960c55b487eb963e3be00d92"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/interstage-release.json",
+              "sha256": "7ff67b5fae46adf25e8e8a592072f441e76a829eb88af6ec0a9ffd3e7aa33a9a"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/transition/old-stop.json",
+              "sha256": "796fd79be802b36e497d38b97d635debc7b6156605263a510f82f5f7a44c0f8d"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/stop-P.stdout",
+                "sha256": "c755b2fcf1c39833766ba46b5fbe89e03b193632a54deaa2f2f13af401a58506"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/stop-D.stdout",
+                "sha256": "53ca9af34d40dcf246a6dffd4c9583ff5184824fc2dbd408c595f612ccb0d264"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/vram-old-release-52-P.txt",
+                "sha256": "c162a0ac992ee67167e8a90783e498c06e5a0a789de71c57ccb55f13e6276d3a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/vram-old-release-52-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/old-compute-52-P.stdout",
+                "sha256": "069df6770acfa41ccea24a58687debc354097a89b6e10cd5be3e5eaee6be32e7"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-G-GSM4096-20261124T081912Z/01-G/old-compute-52-D.stdout",
+                "sha256": "cc4ffa3af0648409ab240c8cfb602767937f3f3387fcb544fdae9e5cc4db310a"
+              }
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": 49,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "G": {
+            "max_model_len": 4608,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "glm53-fixed50-context-4608",
+        "gsm8k_fixture": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/fixtures/gsm8k-fixed50/manifest.json",
+          "sha256": "310171c8025dc59f0b1f4551ba5854e27f336b34efa2bb96e159855afba9cb98"
+        }
+      },
+      "host_min_available_gib": {
+        "P": 91.53929138183594,
+        "D": 901.9356079101562
+      }
+    },
+    {
+      "run_id": "PD-V6-B1-D-20261124T091427Z",
+      "case": [
+        "B1",
+        "S1",
+        "D"
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/result.json",
+        "sha256": "482127649a9e2af799b8cecb741e2952fac3f6a07ecb4edc3e191b7f60ebfa1a"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/plan-P.json",
+          "sha256": "cf51e2f62845d2ee7845fa4efcbb5e908f79130e922b68f1ecf7f2534ea69b64"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/plan-D.json",
+          "sha256": "2d213f992df46654689daa663451e52c5dd63fc504b1b0d2c3f613c340680b25"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/gpu-admission.json",
+        "sha256": "03c3be4c16bda2fbabd8511e8ae3674c851f745b437e570f164ab674948bab10"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/memory-both.json",
+        "sha256": "70beacf5bc9b1a55001b0ea148a4f01f601fcbc1f4c6e1076fa837d24855a623"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/release-both.json",
+        "sha256": "ac84ffb21bb23c3e04f33852f7562738cf420181bdb4f64dcb44cc4752a86edc"
+      },
+      "begin_wall_ns": 1795511678106882939,
+      "release_end_wall_ns": 1795513397123478906,
+      "host_peak_gib": {
+        "P": 1835.5586242675781,
+        "D": 1024.288688659668
+      },
+      "common_zero_seconds": 78.978946207,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 572.735555557,
+        "roles": {
+          "P": {
+            "lmcache": 217.458608692,
+            "store": 354.828987023
+          },
+          "D": {
+            "store": 340.838012502
+          }
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/services-start.json",
+          "sha256": "a099f8aec524f853275aa807946b7072684a1772a585531093ef614768b1b18b"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/services-setup-clock.json",
+          "sha256": "c352e46d668f70c03f3dd99e1384562308e10edfd7aec1320a6f97fa5988ee29"
+        },
+        "weight_store_configured_pool_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        },
+        "weight_store_registered_pinned_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "D",
+          "old_model": null,
+          "action": "start_store_new_worker",
+          "measurement": "first_store_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 552.320825652,
+            "net_s": 552.320825652,
+            "release_wait_s": 0.0,
+            "route_ready_s": 519.161918161,
+            "serve_to_correct_response_s": 33.158907491,
+            "request_s": 33.110969133
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 512.993762957,
+              "weights_s": 167.832968716,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 10.578395046,
+              "weights_rank_max_s": 167.712749602,
+              "gpu_kv_alloc_rank_max_s": 3.603129623
+            },
+            "D": {
+              "worker_start_to_ready_s": 518.983271203,
+              "weights_s": 166.238767903,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 15.943158955,
+              "weights_rank_max_s": 166.209682893,
+              "gpu_kv_alloc_rank_max_s": 0.115131176
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/00-D/segment-result.json",
+            "sha256": "ceb819ac31c3c655e721f886d333619247ff566c0bdfcd4047cc322f7dbb76f6"
+          }
+        },
+        {
+          "step": 1,
+          "model": "D",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 417.694846403,
+            "net_s": 414.851911849,
+            "release_wait_s": 2.842934554,
+            "route_ready_s": 395.365404534,
+            "serve_to_correct_response_s": 22.329441869,
+            "request_s": 22.281280546
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 370.997008409,
+              "weights_s": 36.621691312,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 7.210780631,
+              "weights_rank_max_s": 36.567461102,
+              "gpu_kv_alloc_rank_max_s": 0.114952612
+            },
+            "D": {
+              "worker_start_to_ready_s": 385.679645538,
+              "weights_s": 33.137267447,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 15.986847007,
+              "weights_rank_max_s": 33.074063781,
+              "gpu_kv_alloc_rank_max_s": 0.110018355
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/segment-result.json",
+            "sha256": "05ce38b30c56d5ad32b8c2cbf7646eee42a68a8add58d5fa4f86475b1e63caaa"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/interstage-release.json",
+              "sha256": "48806f1f0eb4b0a21980d62de265e29fb676f48eb9a6872a8afb119a8596e33d"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/transition/old-stop.json",
+              "sha256": "1936ea4b18b5affe5b6fcb9d7b2d2ce08e4f72d3fc5a48ec50b3b519912cdf9e"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/stop-P.stdout",
+                "sha256": "7fd1f0cd2305328dcd1c3f10922d48cd2d1e250871f14398b23c05e81e17f8e7"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/stop-D.stdout",
+                "sha256": "b090ed24be6bb8211f3003066e3a2b6e186359dd7298f7b677909cd82179db99"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/vram-old-release-0-P.txt",
+                "sha256": "cff85f0a5bb75be5623ddee165f699fa674b551d80d4046859ebb529b2b03f5f"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/old-compute-0-P.stdout",
+                "sha256": "b6f64fac7f190ff547393b7a4692891b1e775e977e98b75e354d1761172571b8"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-D-20261124T091427Z/01-D/old-compute-0-D.stdout",
+                "sha256": "6a01599f13ae5ff7cf93d3bcbc7296bbf0adec35f926d490de114f2efb19d820"
+              }
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      },
+      "host_min_available_gib": {
+        "P": 87.72458267211914,
+        "D": 898.9945259094238
+      }
+    },
+    {
+      "run_id": "PD-V6-B1-S1-20261124T094436Z",
+      "case": [
+        "B1",
+        "S1",
+        null
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/result.json",
+        "sha256": "86ee8d00ce93f0d2c4734dfbf2b4dbfa0f74887164f64177704dd31a2ec42480"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/plan-P.json",
+          "sha256": "411deef86c18546648aeb887bbe6ae6fcaac58522346ee24425be9d9d1fc5f3f"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/plan-D.json",
+          "sha256": "4b3e83808d3bda338f35d6436636c56ee73569f73fe1e0e507b67610effa970a"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/gpu-admission.json",
+        "sha256": "8778b2a2323a7ed4e10fb10f674717d73d2b11b1a507b98cb94b41a60c4a6455"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/memory-both.json",
+        "sha256": "223629b1d6f2c07485bd523025af41838b3720f89385664339e314b7cc30716a"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/release-both.json",
+        "sha256": "472fbfb71e5d2f87d6a69f430abd32d475db3066c4e131f216e79f2c538697aa"
+      },
+      "begin_wall_ns": 1795513488143820235,
+      "release_end_wall_ns": 1795518389124611670,
+      "host_peak_gib": {
+        "P": 1831.2039489746094,
+        "D": 1023.3932342529297
+      },
+      "common_zero_seconds": 78.97796133,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 575.00013501,
+        "roles": {
+          "P": {
+            "lmcache": 216.459661749,
+            "store": 357.869196606
+          },
+          "D": {
+            "store": 341.912826883
+          }
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/services-start.json",
+          "sha256": "ba8b02cbdb9f153e2d3ffed68dbdb6578ff9c537b5139f964c3dc0f96b969cce"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/services-setup-clock.json",
+          "sha256": "c6cef3b12e3052d42a864b11014854ee1ec1694065200a76689c397e9681978a"
+        },
+        "weight_store_configured_pool_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        },
+        "weight_store_registered_pinned_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "K",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1280.418836585,
+            "net_s": 1280.418836585,
+            "release_wait_s": 0.0,
+            "route_ready_s": 1278.09173324,
+            "serve_to_correct_response_s": 2.327103345,
+            "request_s": 2.281290698
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 1265.327609201,
+              "weights_s": 1087.532553516,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.487398269,
+              "weights_rank_max_s": 1087.442688117,
+              "gpu_kv_alloc_rank_max_s": 5.533089593
+            },
+            "D": {
+              "worker_start_to_ready_s": 1267.451283032,
+              "weights_s": 1105.483824712,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.637456627,
+              "weights_rank_max_s": 1105.402890554,
+              "gpu_kv_alloc_rank_max_s": 2.004177859
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/00-K/segment-result.json",
+            "sha256": "5a7325f7e240cccf8c26af72e7b9df5e3631b76b0939fc8a16abe1e28c1d9636"
+          }
+        },
+        {
+          "step": 1,
+          "model": "G",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 530.458688711,
+            "net_s": 529.692146953,
+            "release_wait_s": 0.766541758,
+            "route_ready_s": 528.75363711,
+            "serve_to_correct_response_s": 1.705051601,
+            "request_s": 1.662334278
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 516.659138121,
+              "weights_s": 129.057769337,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 7.13259875,
+              "weights_rank_max_s": 129.044470016,
+              "gpu_kv_alloc_rank_max_s": 0.370114314
+            },
+            "D": {
+              "worker_start_to_ready_s": 518.986344927,
+              "weights_s": 125.648240225,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 13.59134387,
+              "weights_rank_max_s": 125.463961544,
+              "gpu_kv_alloc_rank_max_s": 0.456436547
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/segment-result.json",
+            "sha256": "84de2eb0be93b9f144c26c5a9117991d54a70610d6ba9ee1bee77a9a5fa901dd"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/decode-read-native.log",
+              "sha256": "23898935d0abe953055d34e2509f6a0e2bbc0b86c04f9aee4aad33b5dee8cbcd"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/decode-read-ranks.json",
+              "sha256": "5884f566d6cd9e55bf180d51b2db3628ff4702c0c683b0d1c91bec92e3515470"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/interstage-release.json",
+              "sha256": "5927ce06e5d6f4b64c2f235332e0bf7975648abd2022c180f7b52e8267951de1"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/transition/old-stop.json",
+              "sha256": "d7aa8d722e7277afe54031fd66bd390ac3c4dc84d333d08d557ddf600f36f695"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/stop-P.stdout",
+                "sha256": "037945a71ef5a6d4534555b02a3abb5a29b22d86f2da54b5b5b4f04ee946d012"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/stop-D.stdout",
+                "sha256": "10e2e783e405f6a98e3b8791b781779f0bb80ae8a5f9b38bb37a21cb28163d54"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/vram-old-release-0-P.txt",
+                "sha256": "0796f60c84e75eaca644d34f54590779db261b1c9441faf1c7ff2632de1c7da8"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/old-compute-0-P.stdout",
+                "sha256": "fce1d5440b339a7c2311a8d0dc18b289ed04f97dbd61f0267212744274400b1b"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/01-G/old-compute-0-D.stdout",
+                "sha256": "30ac825394f1b92dff53cce02b01b86af96e4f27b073c5857ccc859e84c491df"
+              }
+            }
+          }
+        },
+        {
+          "step": 2,
+          "model": "D",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 636.368468262,
+            "net_s": 513.947849061,
+            "release_wait_s": 122.420619201,
+            "route_ready_s": 603.485888426,
+            "serve_to_correct_response_s": 32.882579836,
+            "request_s": 32.833636561
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 477.35597589,
+              "weights_s": 141.314210694,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 11.114525566,
+              "weights_rank_max_s": 141.23855361,
+              "gpu_kv_alloc_rank_max_s": 0.109797378
+            },
+            "D": {
+              "worker_start_to_ready_s": 467.868245297,
+              "weights_s": 139.88562437,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 12.112580311,
+              "weights_rank_max_s": 139.859078903,
+              "gpu_kv_alloc_rank_max_s": 0.863906721
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/segment-result.json",
+            "sha256": "e169871fbc2234d8b178a412019d464fd0993d4c549b4453d4d4e82db5d46da2"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/interstage-release.json",
+              "sha256": "e429afd53718b84b72f577c068ae5ed76d075891c0cabff7262be20630bdae67"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/transition/old-stop.json",
+              "sha256": "0a201d70ed8ad372b53974b1d4dc720dbdc7d3f1bf08bae4e9cb07783fe1e076"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/stop-P.stdout",
+                "sha256": "551d74a3837bf87b29b8e1075cf643239262fab5af9b94be98e23fb3749e89a7"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/stop-D.stdout",
+                "sha256": "d179184913054ca45d2867a5fcd1f4b221524431775b0d85f7c55ed8e017dc20"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/vram-old-release-74-P.txt",
+                "sha256": "9470cf439dbcf7f3651d26171e976d9a38f58c7b92de6707180f26847b6a6cbe"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/vram-old-release-74-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/old-compute-74-P.stdout",
+                "sha256": "dd01cb5cc9f624cf7be1db915cfce1aa3297af57b23e89b5ccec81814f890db1"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/02-D/old-compute-74-D.stdout",
+                "sha256": "935cda8333d15cab8e4ba5488e3ee7ea66f00ea9e4abdec14655aba9c08755f8"
+              }
+            }
+          }
+        },
+        {
+          "step": 3,
+          "model": "G",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 504.197666591,
+            "net_s": 503.559630165,
+            "release_wait_s": 0.638036426,
+            "route_ready_s": 502.315327353,
+            "serve_to_correct_response_s": 1.882339238,
+            "request_s": 1.838638791
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 494.865828436,
+              "weights_s": 123.046470824,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.869344537,
+              "weights_rank_max_s": 123.027158897,
+              "gpu_kv_alloc_rank_max_s": 0.015664119
+            },
+            "D": {
+              "worker_start_to_ready_s": 494.912009547,
+              "weights_s": 121.744858316,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.860592424,
+              "weights_rank_max_s": 121.682440235,
+              "gpu_kv_alloc_rank_max_s": 0.011867307
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/segment-result.json",
+            "sha256": "dc6ba516d8926502d22e5c416055c2c3ac4b7f1d507dcbe4bf0d9a7290c512f7"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/decode-read-native.log",
+              "sha256": "028c895064f13b3e6d1c3e0683c17af29cba9874f44b99b227f4d7b6a2130a4c"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/decode-read-ranks.json",
+              "sha256": "528bf3d5f13417c1ed6a68851fffc61cc9794ead5fc0ba383e7b55559245e7cd"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/interstage-release.json",
+              "sha256": "a044fe34b0df69e686bddfc88629122663e98babcb4faf265e3316114d010599"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/transition/old-stop.json",
+              "sha256": "6def65bcaacc713c727d943add0fcbb575d1a16270ad279c002d5636024f487b"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/stop-P.stdout",
+                "sha256": "b19c0644f7e51b0ae21398f314e076583c6827563276057bff9f629dab14619a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/stop-D.stdout",
+                "sha256": "5b0f2ffdef2e95f6b97647ce152bb3eeaeb14d90ad511d393ace9d0f3a80c950"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/vram-old-release-0-P.txt",
+                "sha256": "c06cb36659b2a6881d6ec94b7f753a12a099f306bbc24bc62595b55370306f9b"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/old-compute-0-P.stdout",
+                "sha256": "12d33784e3d947a87dab4792415b99453d06d8a6ee2c0e4169638205e117fcee"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/03-G/old-compute-0-D.stdout",
+                "sha256": "c014e95c862a33b8668440266d916b7d565d04fd07da7b51f3d1e02ce084a18d"
+              }
+            }
+          }
+        },
+        {
+          "step": 4,
+          "model": "K",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 387.583029977,
+            "net_s": 252.59389431,
+            "release_wait_s": 134.989135667,
+            "route_ready_s": 385.35353001,
+            "serve_to_correct_response_s": 2.229499967,
+            "request_s": 2.182117544
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 246.461268765,
+              "weights_s": 97.036371849,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.430945734,
+              "weights_rank_max_s": 96.958650529,
+              "gpu_kv_alloc_rank_max_s": 7.308319285
+            },
+            "D": {
+              "worker_start_to_ready_s": 244.443248316,
+              "weights_s": 103.677642199,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 4.840909326,
+              "weights_rank_max_s": 103.651628243,
+              "gpu_kv_alloc_rank_max_s": 3.227842165
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/segment-result.json",
+            "sha256": "c55adda2141bb1d0f4b2e9af152bb749eee14a6b5dd09f37159da8d63a1eaf51"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/interstage-release.json",
+              "sha256": "41b038c1c5e716427ad968153c7eb1cfeb904226057f5e70e1f529edd0137a3f"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/transition/old-stop.json",
+              "sha256": "8434398334667e78df42ffbb11ed39e9868fc530e38fa7ab0d3cfd8ff9a2ba58"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/stop-P.stdout",
+                "sha256": "b244c6610c3648aa8660688f38bd95f932ef06621c098c361217bcaac172918f"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/stop-D.stdout",
+                "sha256": "f298b5de5dc54397fb6a0ce47b5fb7a10d5833a93efefd586b36752609410a97"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/vram-old-release-83-P.txt",
+                "sha256": "07be9837d95d6387f9dfe35c1b3dac5da6eecabb2e6b61252dd46db97913a6a0"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/vram-old-release-83-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/old-compute-83-P.stdout",
+                "sha256": "0e30c81dbb11c9acb089997bae28586ee7829e8dfdd3618080b098285c52be92"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/04-K/old-compute-83-D.stdout",
+                "sha256": "e67c98acddc4626d98dd8437365874f3e6a25423e1286dbee4dff71fa8a6d5b7"
+              }
+            }
+          }
+        },
+        {
+          "step": 5,
+          "model": "D",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 503.325702309,
+            "net_s": 502.759456545,
+            "release_wait_s": 0.566245764,
+            "route_ready_s": 481.110856162,
+            "serve_to_correct_response_s": 22.214846147,
+            "request_s": 22.165391334
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 473.812948199,
+              "weights_s": 140.540945847,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 12.483963519,
+              "weights_rank_max_s": 140.505327368,
+              "gpu_kv_alloc_rank_max_s": 0.113359389
+            },
+            "D": {
+              "worker_start_to_ready_s": 468.989678893,
+              "weights_s": 139.075606562,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.239518077,
+              "weights_rank_max_s": 138.974988555,
+              "gpu_kv_alloc_rank_max_s": 0.131604396
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/segment-result.json",
+            "sha256": "131de94f01a61887dbe4d7456fc03ca210da4bc8a195a270257e97fda1c3a891"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/interstage-release.json",
+              "sha256": "1a190d2a7b380fc5b24efc3d375b1178a4a0272ac9849d2cda5e7eb2a4ce69b2"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/transition/old-stop.json",
+              "sha256": "6d51840b206c99d2b62451b9fbc479e27a7518de7d4a5681ddafbe1a12fa1c48"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/stop-P.stdout",
+                "sha256": "db1d3f79b2107c6073deb4d1b2b7a412a4d3283ad62f0d14180c96cd03898a72"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/stop-D.stdout",
+                "sha256": "4d61278cc01ab98afe6a27c1b6962e443f489cda320ff7ac90ccdc977024d68f"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/vram-old-release-0-P.txt",
+                "sha256": "07be9837d95d6387f9dfe35c1b3dac5da6eecabb2e6b61252dd46db97913a6a0"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/old-compute-0-P.stdout",
+                "sha256": "f1e57b3850fe1538fd0feff29249bf248b9bda5faccd40ad1eb5be4817752979"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/05-D/old-compute-0-D.stdout",
+                "sha256": "02fb0a730da58d930079faf50844f0980f11b30f4f682040fd65d59d17b7a414"
+              }
+            }
+          }
+        },
+        {
+          "step": 6,
+          "model": "K",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 256.059788416,
+            "net_s": 255.405767408,
+            "release_wait_s": 0.654021008,
+            "route_ready_s": 253.847961949,
+            "serve_to_correct_response_s": 2.211826467,
+            "request_s": 2.164140509
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 246.443763723,
+              "weights_s": 96.222534784,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.825524117,
+              "weights_rank_max_s": 96.137865434,
+              "gpu_kv_alloc_rank_max_s": 7.718163243
+            },
+            "D": {
+              "worker_start_to_ready_s": 243.450725803,
+              "weights_s": 103.558902977,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 4.619132099,
+              "weights_rank_max_s": 103.444262485,
+              "gpu_kv_alloc_rank_max_s": 3.316441584
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/segment-result.json",
+            "sha256": "66bb60a9cd80676217b955472b55f9fa7e8ef4de847163cd0c0869dba6eca5b2"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/interstage-release.json",
+              "sha256": "f08a2205dace3b9d1834cde369fe512f17249fb1be0d99f969252685c0d1827b"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/transition/old-stop.json",
+              "sha256": "5def6c1af354a91723af19074fd457b3aa1059ddea763ed0787826631e7eba0e"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/stop-P.stdout",
+                "sha256": "34b4d1ce267d289cefab1d3acd3130e426015971e45ad712a9d6d95ef2b43459"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/stop-D.stdout",
+                "sha256": "bde4ab9ebc47f5c0bf3e5c9fcd7a98ebf72f58790df89b0dd50dff9ac320118f"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/vram-old-release-0-P.txt",
+                "sha256": "07be9837d95d6387f9dfe35c1b3dac5da6eecabb2e6b61252dd46db97913a6a0"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/old-compute-0-P.stdout",
+                "sha256": "8afb6bd7ec34d3f6a18619b252cbd01603d5324e78b47fb2fc2263911c3ea9ca"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S1-20261124T094436Z/06-K/old-compute-0-D.stdout",
+                "sha256": "e22ae7fb08099bd3effb208fcb7e49f3fd1952c012f9aa2b0078d484842acbd0"
+              }
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "G": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      },
+      "host_min_available_gib": {
+        "P": 92.07925796508789,
+        "D": 899.8899803161621
+      }
+    },
+    {
+      "run_id": "PD-V6-B1-S2-20261124T110733Z",
+      "case": [
+        "B1",
+        "S2",
+        null
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/result.json",
+        "sha256": "a8195696006bf5a7998fc4ca359d437f4ef518b7e7a185b43142786eb876bf73"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/plan-P.json",
+          "sha256": "abf1dc764e1e4ec98875d2e4f41b97639a78f59edafde8682db47f0484835a1f"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/plan-D.json",
+          "sha256": "f022278820e07e30fc805cb4fd25fdc9f61492d6e97ef2582ec334a268b7685b"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/gpu-admission.json",
+        "sha256": "08204ab26d18d76f7d2e2ff953c48161d97cbf18146df42de969a35ec7c5dd2e"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/memory-both.json",
+        "sha256": "20ea55b340b8db6c3eacd3207cdd51a1f84697c2b8652cf1cf1bb23011ed9bae"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/release-both.json",
+        "sha256": "a71ca21f246e1fb1027a495ba0263f49b59720a4f24d5c28563574dbaf62012e"
+      },
+      "begin_wall_ns": 1795518465107552078,
+      "release_end_wall_ns": 1795522953125960905,
+      "host_peak_gib": {
+        "P": 1823.828269958496,
+        "D": 1012.4944648742676
+      },
+      "common_zero_seconds": 78.977001783,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 533.912598804,
+        "roles": {
+          "P": {
+            "lmcache": 216.451181617,
+            "store": 316.789646712
+          },
+          "D": {
+            "store": 291.957706469
+          }
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/services-start.json",
+          "sha256": "47666006b621dbb5778c684d0d7308e5a75626722b57b15191db6ac316d5e01e"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/services-setup-clock.json",
+          "sha256": "fc624c1c2b2aecc3266b18874653481d9b45e9aa682d1c141a3dce0cbcf0a173"
+        },
+        "weight_store_configured_pool_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        },
+        "weight_store_registered_pinned_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "G",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 856.309015395,
+            "net_s": 856.309015395,
+            "release_wait_s": 0.0,
+            "route_ready_s": 854.565477467,
+            "serve_to_correct_response_s": 1.743537928,
+            "request_s": 1.699037084
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 675.338530843,
+              "weights_s": 295.960233333,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 15.86580409,
+              "weights_rank_max_s": 295.870108235,
+              "gpu_kv_alloc_rank_max_s": 0.012119955
+            },
+            "D": {
+              "worker_start_to_ready_s": 841.733229987,
+              "weights_s": 409.818351742,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 45.935941745,
+              "weights_rank_max_s": 409.620201792,
+              "gpu_kv_alloc_rank_max_s": 0.271071649
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/00-G/segment-result.json",
+            "sha256": "782d6160bd4fb5e18708957f42e16f44232540b0cd4dbc9ede7214de24d2c653"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/00-G/decode-read-native.log",
+              "sha256": "213777f5689f7de5b3744b595459727a784609d3460067531e6a6af912b965fc"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/00-G/decode-read-ranks.json",
+              "sha256": "f2b0739b253327488196d1a5460dde3a0173bd446f620556fd85af2b040e4309"
+            }
+          }
+        },
+        {
+          "step": 1,
+          "model": "D",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 656.492702177,
+            "net_s": 518.196107462,
+            "release_wait_s": 138.296594715,
+            "route_ready_s": 622.944091494,
+            "serve_to_correct_response_s": 33.548610683,
+            "request_s": 33.499677621
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 478.385564036,
+              "weights_s": 141.714237256,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.206710057,
+              "weights_rank_max_s": 141.678521624,
+              "gpu_kv_alloc_rank_max_s": 0.124331753
+            },
+            "D": {
+              "worker_start_to_ready_s": 480.903680623,
+              "weights_s": 139.659475864,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 14.349505372,
+              "weights_rank_max_s": 139.659440888,
+              "gpu_kv_alloc_rank_max_s": 1.627061945
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/segment-result.json",
+            "sha256": "3d36a456d29737d2e52cff42b9a4614e0ab9f5e143d2c086fef53a4493d06807"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/interstage-release.json",
+              "sha256": "622235d4e0213ff433e55cda5ad3dc176bce97c646c6716483fd2ee8766ff539"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/transition/old-stop.json",
+              "sha256": "fb2350b00799b86dfdf91e5878c4fe22ed40e656d9e9f987f268495c0ba496bb"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/stop-P.stdout",
+                "sha256": "d76d27ad66485021bfe77713cc2f72abe0dead23bd5a7f682c0c4af4c8bcd0c0"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/stop-D.stdout",
+                "sha256": "280fc26eb38045c79b0645f5f51512eb5095bdaaf5d9fda109d9a7dd72781ed4"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/vram-old-release-85-P.txt",
+                "sha256": "c7e31f74791758ed095cb6d07bec6bfe3dfd4d487884659c656fc2e9209eca36"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/vram-old-release-85-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/old-compute-85-P.stdout",
+                "sha256": "9e0fd22df923d3275631e34d65c282f77de7b91734a3c96bf44e27a0b2fed35c"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/01-D/old-compute-85-D.stdout",
+                "sha256": "a94543801d3cb2f07182176a9f0512007c3f27f70835b328a0f6599a8a60317c"
+              }
+            }
+          }
+        },
+        {
+          "step": 2,
+          "model": "K",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 268.105552719,
+            "net_s": 267.532102202,
+            "release_wait_s": 0.573450517,
+            "route_ready_s": 265.845304731,
+            "serve_to_correct_response_s": 2.260247988,
+            "request_s": 2.214227301
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 237.736462269,
+              "weights_s": 96.14807978,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 4.604439187,
+              "weights_rank_max_s": 96.049200176,
+              "gpu_kv_alloc_rank_max_s": 3.517098779
+            },
+            "D": {
+              "worker_start_to_ready_s": 258.470723141,
+              "weights_s": 103.883771891,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 12.748040022,
+              "weights_rank_max_s": 103.618842229,
+              "gpu_kv_alloc_rank_max_s": 9.455807277
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/segment-result.json",
+            "sha256": "56c8c2844e2d424b6606835051bf3fefc1945eec1e7cfce8bb9b493799a7d3cb"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/interstage-release.json",
+              "sha256": "7b1abf7139a94ca2c269fe7c89a902b5603c67b12e877c0733b3953bba5f4879"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/transition/old-stop.json",
+              "sha256": "0190878eceafffd5c203b89a257acdf7ab997a1e740e8ac08140eef3cc039f0e"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/stop-P.stdout",
+                "sha256": "c0274223839e9fb458f35517c7f2ce6741061aac44de229db42dc44f58c24303"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/stop-D.stdout",
+                "sha256": "d331efc50e430f0c22ffa473a2b0137fd19210a4e3837f7dd20d2907081a90b5"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/vram-old-release-0-P.txt",
+                "sha256": "c7e31f74791758ed095cb6d07bec6bfe3dfd4d487884659c656fc2e9209eca36"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/old-compute-0-P.stdout",
+                "sha256": "ad31aa0869590314a3920f321f91e3d2d7c82e7dd91981ef90d228db3f147591"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/02-K/old-compute-0-D.stdout",
+                "sha256": "66a98814a606f5a6198f91fd5e7a662d358cb14205dff413974d33b1c9844b82"
+              }
+            }
+          }
+        },
+        {
+          "step": 3,
+          "model": "D",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 511.714708121,
+            "net_s": 511.131970959,
+            "release_wait_s": 0.582737162,
+            "route_ready_s": 489.23872578,
+            "serve_to_correct_response_s": 22.475982341,
+            "request_s": 22.425553578
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 463.829823224,
+              "weights_s": 141.195483547,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.539130337,
+              "weights_rank_max_s": 141.131208969,
+              "gpu_kv_alloc_rank_max_s": 0.108079944
+            },
+            "D": {
+              "worker_start_to_ready_s": 481.852388042,
+              "weights_s": 140.160909765,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 13.855195487,
+              "weights_rank_max_s": 140.007638731,
+              "gpu_kv_alloc_rank_max_s": 0.392155515
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/segment-result.json",
+            "sha256": "d068d7c3c7a60a66120d620857c000fc7d05ec1a3e008c2d54ec02e94c8e6adc"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/interstage-release.json",
+              "sha256": "610ee61462da8378338b2567288c19d5a7b7d0fc02b798bc79fedfc17d4c8b0f"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/transition/old-stop.json",
+              "sha256": "459b77f644f338462f9b47ea0840f38e43e7290efa3c2bcaf99b2df48b7ba6d9"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/stop-P.stdout",
+                "sha256": "3a4dcc74c5e9bacdd7886125ecde7fcc7c047e0d729db7b8427ff80a5254b776"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/stop-D.stdout",
+                "sha256": "ad17e9c10dfd9ea7a0d903b60943c6eb63dbc0ea6c125b26b24398b94c44af3f"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/vram-old-release-0-P.txt",
+                "sha256": "c7e31f74791758ed095cb6d07bec6bfe3dfd4d487884659c656fc2e9209eca36"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/old-compute-0-P.stdout",
+                "sha256": "ee0e40edc1b774815a48b32f8a96af367df770fa544ca346ff187364d09982d0"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/03-D/old-compute-0-D.stdout",
+                "sha256": "8d77260369ef4d1fceee651a3f038ed7b51e644cbb6aefc4073b4845f1cc5fc3"
+              }
+            }
+          }
+        },
+        {
+          "step": 4,
+          "model": "G",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 514.645033903,
+            "net_s": 514.052354064,
+            "release_wait_s": 0.592679839,
+            "route_ready_s": 512.850360318,
+            "serve_to_correct_response_s": 1.794673585,
+            "request_s": 1.751372576
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 490.103523896,
+              "weights_s": 123.375910304,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 7.19654683,
+              "weights_rank_max_s": 123.375910304,
+              "gpu_kv_alloc_rank_max_s": 0.010162623
+            },
+            "D": {
+              "worker_start_to_ready_s": 505.164934978,
+              "weights_s": 122.599597163,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.79945485,
+              "weights_rank_max_s": 122.517477814,
+              "gpu_kv_alloc_rank_max_s": 0.012410137
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/segment-result.json",
+            "sha256": "00663061cd2ba7c0c56c38e116501e0c924a5186a3d9c72e64ae1f13c829fa10"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/decode-read-native.log",
+              "sha256": "745dd6659a398d948d2c37809ab321a26552f2b199475b6be79e119abef27b51"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/decode-read-ranks.json",
+              "sha256": "5225cc92712ac95cd77a9ec376e0bf8fc091e2541eb2fea30de0d9c590c78dad"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/interstage-release.json",
+              "sha256": "86451d42d65a7cc57cc5f2994cb00a742f1976cef5af956201deafe499e49bda"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/transition/old-stop.json",
+              "sha256": "034b7714afe425aebcc2970ce70242698a69853293311de55ec2b52d3257a41f"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/stop-P.stdout",
+                "sha256": "2905528acb64b246877710c51b10c06e8e6da7202f349b0f40074166429800b7"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/stop-D.stdout",
+                "sha256": "0aa54901e1c03824d782ba646b9a7f5b3423f27845137310ee663491c0373f69"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/vram-old-release-0-P.txt",
+                "sha256": "d0e4448f5fe6daf1947b16f3e63b0d0e70ff09305051ec4545eeaec0c8be4917"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/old-compute-0-P.stdout",
+                "sha256": "387daeecf5c2983a02196141f0fc802a00ce56031dcea3cdf55249f0db3f6cc3"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/04-G/old-compute-0-D.stdout",
+                "sha256": "0b0a181b234e3b93da59ba955bcec577808f2018b0c097e8405919060cb1f18f"
+              }
+            }
+          }
+        },
+        {
+          "step": 5,
+          "model": "K",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 401.987271604,
+            "net_s": 272.927112271,
+            "release_wait_s": 129.060159333,
+            "route_ready_s": 399.575829018,
+            "serve_to_correct_response_s": 2.411442586,
+            "request_s": 2.366093072
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 237.415505743,
+              "weights_s": 96.424633456,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 4.228900637,
+              "weights_rank_max_s": 96.394237348,
+              "gpu_kv_alloc_rank_max_s": 3.189017158
+            },
+            "D": {
+              "worker_start_to_ready_s": 266.667051719,
+              "weights_s": 103.481179657,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 12.65996686,
+              "weights_rank_max_s": 103.417120459,
+              "gpu_kv_alloc_rank_max_s": 9.249180304
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/segment-result.json",
+            "sha256": "f45df1a3a27c5de15f42dcfbde7ce9863a0f940f4b286fea5387e3fd0bebb018"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/interstage-release.json",
+              "sha256": "c783ed2fd3ab24a41bb31082163d8cfa2ac080620da5d71249da609c898e46ff"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/transition/old-stop.json",
+              "sha256": "3203cc5338431ac895615efef84af8b5f686cdeaab22bd7b59da9c5ccaf51ded"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/stop-P.stdout",
+                "sha256": "3e38fc0e7a9e7b0011708896e6446bf6995a804077ead1718bb41eb8414cbdf6"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/stop-D.stdout",
+                "sha256": "1b8274d7b28094596a8608483926a4e585258e92a9f5801c4c7b315eac762782"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/vram-old-release-79-P.txt",
+                "sha256": "d7a8532c0e1f3f0ea5388a8455e19ac201a5861c90e381e0a460922fa7ba07c2"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/vram-old-release-79-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/old-compute-79-P.stdout",
+                "sha256": "ad71038f5e97f3977e7100ec36358d2fc2a964fdae6118f99553ee35d6312767"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/05-K/old-compute-79-D.stdout",
+                "sha256": "cdd3bd3d31b5ea04308a132e3a843e76ada6b414606b7e5406973ea61fbf9758"
+              }
+            }
+          }
+        },
+        {
+          "step": 6,
+          "model": "G",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 520.888869916,
+            "net_s": 520.303009418,
+            "release_wait_s": 0.585860498,
+            "route_ready_s": 519.182946575,
+            "serve_to_correct_response_s": 1.705923341,
+            "request_s": 1.65959034
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 472.84358294,
+              "weights_s": 108.852704414,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.926277782,
+              "weights_rank_max_s": 108.784939817,
+              "gpu_kv_alloc_rank_max_s": 0.01315789
+            },
+            "D": {
+              "worker_start_to_ready_s": 511.963598527,
+              "weights_s": 124.664791669,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 12.88385948,
+              "weights_rank_max_s": 124.554978351,
+              "gpu_kv_alloc_rank_max_s": 0.082310026
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/segment-result.json",
+            "sha256": "a6680e06c3994e02b4e519e44f73d12ff2ccdf0cb408c54efa1a33d4954856a1"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/decode-read-native.log",
+              "sha256": "f4b88b10caa7069300ca8320dde4aa07c99ba3c71be4f91114ef9199108a3f53"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/decode-read-ranks.json",
+              "sha256": "7255304bce057e8d3ddd4675b3be10d7811c8216743de1708b70e53a2a99cb93"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/interstage-release.json",
+              "sha256": "296bb15fbb1f0e24b8fcadda07968c0b0c6b6cca0043427bdbe46ccc60dfc6d2"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/transition/old-stop.json",
+              "sha256": "dbdd7f6c7bb21fb361047e38bed5e95a718955952ccb8617cef3032fe8fedf23"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/stop-P.stdout",
+                "sha256": "e3ab3ec556e4e91340eaa0d91dc495e5ce46359b7662ee32bcfdf9b39b988f32"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/stop-D.stdout",
+                "sha256": "73f279042b5dac376194da74d1cd3a13b22fbdfd71f53922761e55d3cc7753a6"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/vram-old-release-0-P.txt",
+                "sha256": "6e057c9026b8fc2629f56b08aa889e60ba815cf61cfdb07c76f4a55057ea4279"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/old-compute-0-P.stdout",
+                "sha256": "9c0842ef634a3d1a0c2682a7759e31596b549d927aa1af354287935b86a067be"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S2-20261124T110733Z/06-G/old-compute-0-D.stdout",
+                "sha256": "0ba301b7aa459bd22540c136f5fccd761dff55ff07a4bc7e5af11b2a5c0fd3d7"
+              }
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "G": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      },
+      "host_min_available_gib": {
+        "P": 99.45493698120117,
+        "D": 910.7887496948242
+      }
+    },
+    {
+      "run_id": "PD-V6-B1-S3-20261124T122400Z",
+      "case": [
+        "B1",
+        "S3",
+        null
+      ],
+      "receipt": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/result.json",
+        "sha256": "f800f5ee4808f6249052282e6077d37122da58767d13bd8ee5b492234ae68ced"
+      },
+      "plans": {
+        "P": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/plan-P.json",
+          "sha256": "5c071b74d0019627bd2f1ecd6cf08626da89c2016891b6002b2df32a2017b6cb"
+        },
+        "D": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/plan-D.json",
+          "sha256": "cfd111fae33ac92bedfe60025e1697c28bc785af7eadcf6af50f34735d72fa80"
+        }
+      },
+      "admission": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/gpu-admission.json",
+        "sha256": "cb6e89d642c9907e27ee52828324a40e47b88d8557c504bbd7a01d32f73a35b6"
+      },
+      "memory": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/memory-both.json",
+        "sha256": "3b0a474ff022c976623cabfa55aac0c4e6607cc8ff8043673f71f14047fbae98"
+      },
+      "release": {
+        "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/release-both.json",
+        "sha256": "bdc3b72fbf2e1b1d2d158ffb588b930e55002f727b1317b023a043f2a03e5556"
+      },
+      "begin_wall_ns": 1795523052118086890,
+      "release_end_wall_ns": 1795527693124998863,
+      "host_peak_gib": {
+        "P": 1824.115982055664,
+        "D": 1013.0134201049805
+      },
+      "common_zero_seconds": 78.977309813,
+      "handoff_eligible": true,
+      "setup": {
+        "wall_s": 535.847613323,
+        "roles": {
+          "P": {
+            "lmcache": 217.447987858,
+            "store": 317.750491856
+          },
+          "D": {
+            "store": 287.781091241
+          }
+        },
+        "service_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/services-start.json",
+          "sha256": "8a888c8532818925991777d4f65872ea50a283ab4ef531bf087c39418a051e4d"
+        },
+        "clock_receipt": {
+          "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/services-setup-clock.json",
+          "sha256": "93c255492b25036dd55c6a1b42d9da9c6c7bed00acdcebf3c3c9166b491ee80a"
+        },
+        "weight_store_configured_pool_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        },
+        "weight_store_registered_pinned_bytes": {
+          "P": 927712935936,
+          "D": 927712935936
+        }
+      },
+      "segments": [
+        {
+          "step": 0,
+          "model": "D",
+          "old_model": null,
+          "action": "load_safetensors_cold",
+          "measurement": "first_cold_start",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 1019.628016719,
+            "net_s": 1019.628016719,
+            "release_wait_s": 0.0,
+            "route_ready_s": 986.396799787,
+            "serve_to_correct_response_s": 33.231216932,
+            "request_s": 33.182402143
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 682.264258434,
+              "weights_s": 327.756795231,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 11.337263829,
+              "weights_rank_max_s": 327.542668924,
+              "gpu_kv_alloc_rank_max_s": 0.128578491
+            },
+            "D": {
+              "worker_start_to_ready_s": 981.776652447,
+              "weights_s": 623.592007868,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 31.345599941,
+              "weights_rank_max_s": 623.558703866,
+              "gpu_kv_alloc_rank_max_s": 2.272919336
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/00-D/segment-result.json",
+            "sha256": "5ceeb4aa1d2695355973225ef8803f224aa2a89006315518b4d6a2801c24eb44"
+          }
+        },
+        {
+          "step": 1,
+          "model": "K",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 271.356049188,
+            "net_s": 270.760225645,
+            "release_wait_s": 0.595823543,
+            "route_ready_s": 269.063397339,
+            "serve_to_correct_response_s": 2.292651849,
+            "request_s": 2.24794126
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 250.875207249,
+              "weights_s": 96.156579463,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.545421046,
+              "weights_rank_max_s": 96.131877139,
+              "gpu_kv_alloc_rank_max_s": 7.5247681
+            },
+            "D": {
+              "worker_start_to_ready_s": 261.534229756,
+              "weights_s": 103.961172213,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 9.648220237,
+              "weights_rank_max_s": 103.944116089,
+              "gpu_kv_alloc_rank_max_s": 6.708697627
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/segment-result.json",
+            "sha256": "dde5c732904552eefd1ebd6b982720c2e54d4c0414e7237714ac2166f7ef3ee6"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/interstage-release.json",
+              "sha256": "aca1720ceb59e0c88040375e6bfb1786cdc98ffed2b6fea81f5e30c326ddb140"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/transition/old-stop.json",
+              "sha256": "ae289222f1e114853a0235a746268aecf6ffdecddbd665c7f4c98a1870912936"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/stop-P.stdout",
+                "sha256": "01ed1c0d63001cb94b3fc90c9b2676972547ffba0ca5a53d55d42d37ba29125b"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/stop-D.stdout",
+                "sha256": "f405860b7b838f05229925976b692133c5aa0abf40fd0effdd3e6b12c73328ae"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/vram-old-release-0-P.txt",
+                "sha256": "cff85f0a5bb75be5623ddee165f699fa674b551d80d4046859ebb529b2b03f5f"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/old-compute-0-P.stdout",
+                "sha256": "c091679ceb586b9550d655dfdf91a3e729bc0b97363794b863316cea824f83cd"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/01-K/old-compute-0-D.stdout",
+                "sha256": "b11ce53367f6e74e19f583b4784ee4e731b11e0aac537d2f03eb9029088aa5bf"
+              }
+            }
+          }
+        },
+        {
+          "step": 2,
+          "model": "G",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 0,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 513.39963665,
+            "net_s": 512.783169962,
+            "release_wait_s": 0.616466688,
+            "route_ready_s": 511.669671726,
+            "serve_to_correct_response_s": 1.729964924,
+            "request_s": 1.683307228
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 502.167357224,
+              "weights_s": 125.602750443,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.964863165,
+              "weights_rank_max_s": 125.525358505,
+              "gpu_kv_alloc_rank_max_s": 0.057657993
+            },
+            "D": {
+              "worker_start_to_ready_s": 504.242777151,
+              "weights_s": 124.138196184,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.83438736,
+              "weights_rank_max_s": 124.09603496,
+              "gpu_kv_alloc_rank_max_s": 0.010872914
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/segment-result.json",
+            "sha256": "85bc198ec05f25bf502299d653d0495c0e63ff09c8a84ac85bf56f35d178a8a4"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/decode-read-native.log",
+              "sha256": "f8ea28209deec878909f03718b2c7a4de85446c94e74a524d7262722717d510b"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/decode-read-ranks.json",
+              "sha256": "db5f2aca68bb122d23b012b5ab72407aac3c02cc34a75d1c553b849ac94c40c6"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/interstage-release.json",
+              "sha256": "beae03643f89e8abad88ff917a8aa054ac3df2637700d205f044245eca4884b0"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/transition/old-stop.json",
+              "sha256": "ffe823e7c67b8d002e5db4fcc797bca1a2461d23ad37359d0d5f37c097205a0c"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/stop-P.stdout",
+                "sha256": "f7c8ac40d9b8bbaf551a8351f7c186bc599ff7b899fb467ffc4864e02d159176"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/stop-D.stdout",
+                "sha256": "cee30a9d49428f008727c593f66d86cbe570a0cbc0f341223dd397906144d68f"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/vram-old-release-0-P.txt",
+                "sha256": "0796f60c84e75eaca644d34f54590779db261b1c9441faf1c7ff2632de1c7da8"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/old-compute-0-P.stdout",
+                "sha256": "be587b8b04cf50fb11dcda3f3be6c58a31994f0aa340a1559fded7df11162af9"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/02-G/old-compute-0-D.stdout",
+                "sha256": "612fc66d4371766327833955bb24969843425ebe5d8791086aa816ae87397ae3"
+              }
+            }
+          }
+        },
+        {
+          "step": 3,
+          "model": "K",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 314818560.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 398.20509988,
+            "net_s": 268.441850452,
+            "release_wait_s": 129.763249428,
+            "route_ready_s": 395.662553598,
+            "serve_to_correct_response_s": 2.542546282,
+            "request_s": 2.497906091
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 246.536180412,
+              "weights_s": 96.023136418,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 8.914332615,
+              "weights_rank_max_s": 96.002457369,
+              "gpu_kv_alloc_rank_max_s": 7.793214538
+            },
+            "D": {
+              "worker_start_to_ready_s": 262.02413583,
+              "weights_s": 103.928075453,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 10.080015866,
+              "weights_rank_max_s": 103.785198152,
+              "gpu_kv_alloc_rank_max_s": 6.733161613
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/segment-result.json",
+            "sha256": "38922e2aec7c8594b249b7a137a03a396ad7bd72b1be9c3dd954971245f33a65"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/interstage-release.json",
+              "sha256": "e50595467d7d87804b044f39d0a0bab490f277ded2bbee30dbb482ebe9bb674c"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/transition/old-stop.json",
+              "sha256": "a3e9a82881868b4a0cd1b7ae85d837d7593d968a9994fb0d0399963eb51607f0"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/stop-P.stdout",
+                "sha256": "12de2067819cbbab8e9df8116e25c29797c18c340e0e523579a08c3dc686fbb4"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/stop-D.stdout",
+                "sha256": "804fb7bfa0e050c2014203d1db6b2e6cd1ff690897115538df7b07d59653d893"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/vram-old-release-80-P.txt",
+                "sha256": "c06cb36659b2a6881d6ec94b7f753a12a099f306bbc24bc62595b55370306f9b"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/vram-old-release-80-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/old-compute-80-P.stdout",
+                "sha256": "781589f7f5d57be1f700f9fe7c6e743c48e66cc52c39e8fa79528ae15207e735"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/03-K/old-compute-80-D.stdout",
+                "sha256": "98d953cdb6769c8d29afac966a49efe56603c2bfb1823a744e7a545dd2ebe891"
+              }
+            }
+          }
+        },
+        {
+          "step": 4,
+          "model": "D",
+          "old_model": "K",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 513.867397323,
+            "net_s": 513.23450713,
+            "release_wait_s": 0.632890193,
+            "route_ready_s": 491.577186466,
+            "serve_to_correct_response_s": 22.290210857,
+            "request_s": 22.242029818
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 477.838916064,
+              "weights_s": 140.527925926,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 11.338505081,
+              "weights_rank_max_s": 140.495036947,
+              "gpu_kv_alloc_rank_max_s": 0.130961226
+            },
+            "D": {
+              "worker_start_to_ready_s": 483.986700129,
+              "weights_s": 139.071398752,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 19.662631263,
+              "weights_rank_max_s": 139.00579032,
+              "gpu_kv_alloc_rank_max_s": 1.336459236
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/segment-result.json",
+            "sha256": "ff96bca710cd9d7b09470eb8fc4e9e4da2be3c7a22616ecaf0f0bc11bb9670aa"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/interstage-release.json",
+              "sha256": "a063302cb63f1a60376715314fa929f1009d1903ba25d0a2464cf30ea933b8e6"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/transition/old-stop.json",
+              "sha256": "a66d44a8aa3eb12cd6fe724421b852cb5f189f9d2436b64841c490ead8288651"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/stop-P.stdout",
+                "sha256": "7f649ec3b14b51a8bde631256fac32e057c893fabfce03e0511cc9d0e5821d06"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/stop-D.stdout",
+                "sha256": "8acdd49e0570af47a42f89f76cd98287555bf341a5f5c7200ab725f6a3c31695"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/vram-old-release-0-P.txt",
+                "sha256": "683b86c4309107247ab20c463da070a8b510c846a99eb137e6b292abc70fab81"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/old-compute-0-P.stdout",
+                "sha256": "b9e88939b05a4f48a9683cd42b6a03f81803faec2d44e6818df4f08922d56db3"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/04-D/old-compute-0-D.stdout",
+                "sha256": "ebdf773020d3348f82d1c0b079a2a7128ca2e28a4d671fcab97c51090c9fffae"
+              }
+            }
+          }
+        },
+        {
+          "step": 5,
+          "model": "G",
+          "old_model": "D",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 248555520.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 529.348161204,
+            "net_s": 528.656610283,
+            "release_wait_s": 0.691550921,
+            "route_ready_s": 527.460198412,
+            "serve_to_correct_response_s": 1.887962792,
+            "request_s": 1.844961538
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 496.876828455,
+              "weights_s": 125.487279444,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 6.933317263,
+              "weights_rank_max_s": 125.359645429,
+              "gpu_kv_alloc_rank_max_s": 0.057637245
+            },
+            "D": {
+              "worker_start_to_ready_s": 519.975290361,
+              "weights_s": 124.574284915,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 19.32196154,
+              "weights_rank_max_s": 124.528235053,
+              "gpu_kv_alloc_rank_max_s": 0.080159514
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/segment-result.json",
+            "sha256": "fd8b0db8b1ce8bff675315d3bc10fb63a8d968c8714b5ad321e00cde8dfa317e"
+          },
+          "glm_read_evidence": {
+            "trace": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/decode-read-native.log",
+              "sha256": "8b3d066b9edc1e1ccc9f7e315ad9434788928cbabd84f885ac4557d2295bf77d"
+            },
+            "ranks": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/decode-read-ranks.json",
+              "sha256": "fc902645d0ba90d63a12ecb0abdd792a778b0846f568b533b5a09639081d9723"
+            }
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/interstage-release.json",
+              "sha256": "a70456e293a90f33ba2bbfd1c5e020c3c3576ae18823dc5b44faaa854b41e5f7"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/transition/old-stop.json",
+              "sha256": "c26ad3f355a68673a80ae4a237dd1579da45de0fd50100bc3b0944d35793bc6c"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/stop-P.stdout",
+                "sha256": "f696d3965991d4f4f9987c039caa19a4e1192c818fe241be196d227342d169c8"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/stop-D.stdout",
+                "sha256": "be86ee334303db95bfb924f62ee0674dbc90b27280ad257e546448a3710be656"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/vram-old-release-0-P.txt",
+                "sha256": "d64b1c70b5bbc8ce37290688237adf470165f6d957715fa64049e52526775ed1"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/vram-old-release-0-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/old-compute-0-P.stdout",
+                "sha256": "494ec02fb00adcf46c4521e6ec8a68e31c480d9daf7666ee48add5faf9bda6d7"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/05-G/old-compute-0-D.stdout",
+                "sha256": "1e50ae92f22d74a07fd0403621aa72fb185d987654e09d84247c62f9ce279d27"
+              }
+            }
+          }
+        },
+        {
+          "step": 6,
+          "model": "D",
+          "old_model": "G",
+          "action": "start_store_new_worker",
+          "measurement": "switch",
+          "host_hit_tokens": 512,
+          "rdma_bytes": 318256128.0,
+          "decode_prompt_tokens": {
+            "external_tokens": 560.0,
+            "local_cache_tokens": 0.0,
+            "computed_tokens": 0.0
+          },
+          "timing": {
+            "total_s": 633.503143362,
+            "net_s": 502.030379948,
+            "release_wait_s": 131.472763414,
+            "route_ready_s": 611.177613169,
+            "serve_to_correct_response_s": 22.325530193,
+            "request_s": 22.276243693
+          },
+          "role_stage_timing": {
+            "P": {
+              "worker_start_to_ready_s": 473.866674513,
+              "weights_s": 139.633638411,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 12.023569147,
+              "weights_rank_max_s": 139.464418559,
+              "gpu_kv_alloc_rank_max_s": 0.110167804
+            },
+            "D": {
+              "worker_start_to_ready_s": 475.924324249,
+              "weights_s": 139.195244094,
+              "checkpoint_reload_s": null,
+              "gpu_kv_alloc_s": 10.709736208,
+              "weights_rank_max_s": 139.12619987,
+              "gpu_kv_alloc_rank_max_s": 0.111450367
+            }
+          },
+          "receipt": {
+            "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/segment-result.json",
+            "sha256": "fa94af6c2d782999211ebebee0db73407db5713487aa62e34a8a5c55737369ab"
+          },
+          "interstage_release": {
+            "receipt": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/interstage-release.json",
+              "sha256": "c217c5d2817ee95f96660307fe5cd2cd41dba2d7a2a88f2a4b24c8d64de021cb"
+            },
+            "old_stop": {
+              "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/transition/old-stop.json",
+              "sha256": "9ad37796a297364dcf0b9467920cfadf555172eca4cbaf2c748aa079dac66382"
+            },
+            "old_stop_raw": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/stop-P.stdout",
+                "sha256": "4f2615bccdc650f513f7d3c16bd212957faf00da7a01a80d4e3782002fd03f41"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/stop-D.stdout",
+                "sha256": "d9dbc73a51e766bf10e38c9832d3acabdbd641e087b241edcfe02b5f411fb238"
+              }
+            },
+            "reference_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-P.txt",
+                "sha256": "e2d755a434b097cac9dd7daf0d78d7494c67b01f94e1f242247aec72e544263a"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/vram-sidecars-only-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "observed_vram": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/vram-old-release-77-P.txt",
+                "sha256": "7f51b0610123e961d3a3b9b96282bd354578b1ee3a500b95032b7b0aebbd3150"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/vram-old-release-77-D.txt",
+                "sha256": "1fa50692ae5e2d9e0923c5565369307bb941b5003898f21792fd0b2574bd584a"
+              }
+            },
+            "ownership": {
+              "P": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/old-compute-77-P.stdout",
+                "sha256": "475adf53bb4271e390df9c1871644c759d894236852d06d73913c89fd03dd507"
+              },
+              "D": {
+                "path": "/data/brick2/boyjiang/pd-1p1d-baselines/runs/PD-V6-B1-S3-20261124T122400Z/06-D/old-compute-77-D.stdout",
+                "sha256": "727e077c764729d8d529dbc8274d11d38348d1dcf6c07f1f81d0a870a188cab8"
+              }
+            }
+          }
+        }
+      ],
+      "gsm8k_correct": null,
+      "provenance": {
+        "matrix": {
+          "path": "/home/boyjiang/pd-v6-b1-closureplan50.P1Se3muW/runtime/configs/formal-matrix.json",
+          "sha256": "85a68a7d72a65be45e1291c2889c2c53347ff1cff6d109d70662e37c812c23ef"
+        },
+        "geometry": {
+          "D": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "G": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          },
+          "K": {
+            "max_model_len": 2048,
+            "kv_cache_memory_bytes": 17179869184,
+            "tensor_parallel_size": 8
+          }
+        },
+        "profile": "formal-v6"
+      },
+      "host_min_available_gib": {
+        "P": 99.1672248840332,
+        "D": 910.2697944641113
+      }
+    }
+  ]
+}
