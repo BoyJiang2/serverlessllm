@@ -58,4 +58,18 @@ T_total 从切换发出到正确完整响应。T_net 只扣除实际阻塞后续
 
 B2 正式切换中位数。T_total 为 827.287 秒，T_net 为 827.186 秒，有效 n=18。
 
-逐段数据见 [segments.csv](segments.csv)，原始回执索引见 [evidence-index.json](evidence-index.json)。
+![图 1 · B2 三模型独立首启和正式切换](b2-switch-sequences.png)
+
+## P／D 阶段耗时与 Host KV
+
+各序列前三段走 SafeTensors 冷载，Host KV 命中均为 0。后四段使用原 Worker 从 checkpoint 唤醒，12 次均回读 512 token。图中 P／D 阶段为各自八 rank 主机端包络，可彼此重叠。Checkpoint 重载包含在对应唤醒段的权重准备中。
+
+![图 2 · P／D 权重、KV 分配和响应分项](b2-pd-stages.png)
+
+## 数据与重算
+
+[segments.csv](segments.csv) 保存全部 21 段和未取整的逐段数据。[evidence-index.json](evidence-index.json) 绑定通过正式验收的 run ID、回执路径与 SHA-256。重画两张图时，脚本先逐段对照 CSV 与证据索引。依赖 Python、Matplotlib 及 Microsoft YaHei 或 Noto Sans CJK SC 等受支持的中文字体。
+
+```bash
+python v11/pd-1p1d-20261124/plot_b2.py
+```
